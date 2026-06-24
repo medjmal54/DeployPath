@@ -1,0 +1,77 @@
+@page "/"
+@layout LandingLayout
+@inject NavigationManager navigationManager
+
+<PageTitle>DeployPath - Your code in Production</PageTitle>
+
+<section class="hero-section text-center mt-5">
+    <div class="container mt-4">
+        <span class="hero-tagline d-inline-block mb-4">Interactive DevOps Roadmap</span>
+        <h1 class="hero-title display-3 fw-bold mb-3">From code to Cloud</h1>
+        <p class="hero-description lead mx-auto mb-5" style="max-width: 650px; color: rgba(73, 159, 193, 0.8); font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;">
+            Master modern software deployment. Interactive guides about Git,
+                GitHub Actions, Docker and Kubernetes.
+            Move your code from your local machine to production in the cloud.
+        </p>
+    </div>
+</section>
+
+<!-- Interactive Roadmap -->
+<section class="roadmap-container my-5">
+    <div class="container">
+        <div class="roadmap-flow d-flex justify-content-between align-items-center flex-wrap gap-3 position-relative py-4 mx-auto" style="max-width: 1000px;">
+            <div class="roadmap-node d-flex align-items-center gap-2" @onclick='() => NavigateTo("lesson/git/git-intro")'>
+                <span><img src="icons/Git.svg" alt="Git"/></span> Git
+            </div>
+            <span class="roadmap-arrow" style="color: steelblue;">→</span>
+            <div class="roadmap-node d-flex align-items-center gap-2" @onclick='() => NavigateTo("lesson/gha/gha-intro")'>
+                <span><img src="icons/githubactions-svgrepo-com.svg" alt="GitHub Actions" /></span> CI/CD
+            </div>
+            <span class="roadmap-arrow" style="color: royalblue;">→</span>
+            <div class="roadmap-node d-flex align-items-center gap-2" @onclick='() => NavigateTo("lesson/docker/docker-intro")'>
+                <span><img src="icons/Docker.svg" alt="Docker"/></span> Docker
+            </div>
+            <span class="roadmap-arrow" style="color: cornflowerblue;">→</span>
+            <div class="roadmap-node d-flex align-items-center gap-2" @onclick='() => NavigateTo("lesson/k8s/k8s-intro")'>
+                <span><img src="icons/k8s.svg" alt="Kubernetes" /></span> K8s
+            </div>
+            <span class="roadmap-arrow" style="color: mediumseagreen;">→</span>
+            <div class="roadmap-node active-node d-flex align-items-center gap-2">
+                <span>🚀</span> Deploy
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Multi-Language Support -->
+<section class="multi-language-support border rounded-3 p-4 p-lg-5 mb-5 mx-auto" style="max-width: 900px;">
+    <div class="section-headline d-flex flex-column gap-2 mb-4">
+        <h2 class="h4 fw-bold mb-0" style="font-family: var(--font-display);">Language Agnostic Workflows</h2>
+        <p class="text-white-50 small mb-0" style="max-width: 720px; line-height: 1.7;">
+            Deployment patterns that work regardless of your stack. Whether you ship Python, Node.js, Go, or .NET — the pipeline stays the same.
+        </p>
+    </div>
+    <div class="row row-cols-2 row-cols-md-4 row-cols-lg-6 g-3 mb-4">
+        @foreach (var lang in Languages)
+        {
+            <div class="col">
+                <div class="language-pill d-inline-flex align-items-center justify-content-center w-100 py-3 px-3 rounded-pill border">
+                    @lang
+                </div>
+            </div>
+        }
+    </div>
+    <div class="workflow-info-card rounded-3 p-4">
+        <h3 class="h5 fw-bold mb-2">One Pipeline, Any Runtime</h3>
+        <p class="text-white-50 mb-0">Build → Test → Containerize → Deploy. The workflow adapts to your language, not the other way around.</p>
+    </div>
+</section>
+
+@code{
+    private List<string> Languages = new()
+    {
+        "Python", "Node.js", "Go", "Java", ".NET", "PHP"
+    };
+    private void NavigateTo(string path) => navigationManager.NavigateTo(path);
+}
+

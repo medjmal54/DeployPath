@@ -1,0 +1,114 @@
+﻿<div class="playground-wrapper rounded-3 p-4 my-4 border">
+    <div class="playground-header d-flex justify-content-between align-items-center pb-3 mb-4 border-bottom">
+        <h3 class="playground-title h5 fw-bold mb-0 d-flex align-items-center gap-2">
+            <span>⚡</span> GitHub Actions Simulator
+        </h3>
+        <span class="playground-badge">Interactive</span>
+    </div>
+
+    <div class="gha-simulator-container d-flex flex-column gap-3">
+        <!-- Workflow Header -->
+        <div class="gha-workflow-header d-flex justify-content-between align-items-center rounded-2 px-3 py-2" style="background-color: var(--surface-darker); border: 1px solid var(--border-light);">
+            <span class="small text-muted">.github/workflows/deploy.yml</span>
+            <div class="gha-status-badge d-flex align-items-center gap-2 fw-bold small">
+                <span class="status-indicator @StatusClass rounded-circle d-inline-block" style="width: 10px; height: 10px;"></span>
+                @StatusText
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <!-- Steps List -->
+            <div class="col-lg-3">
+                <div class="gha-steps-list d-flex flex-column gap-2">
+                    @foreach (var step in Steps)
+                    {
+                        <div class="gha-step-item d-flex justify-content-between align-items-center rounded-2 px-3 py-3" style="background-color: var(--surface-darker); border: 1px solid var(--border-light); font-size: 0.8rem; @(step.IsActive ? "border-color: var(--primary-accent); box-shadow: 0 0 10px var(--primary-glow);" : "")">
+                            <span class="gha-step-name fw-semibold">@step.Name</span>
+                            <span class="small">@step.Icon</span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Console Log -->
+            <div class="col-lg-9">
+                <div class="gha-console-log rounded-2 p-3 overflow-auto" style="background-color: #050b14; border: 1px solid var(--border-light); font-family: var(--font-mono); font-size: 0.8rem; color: #D8F3DC; height: 200px;">
+                    @foreach (var line in ConsoleLines)
+                    {
+                        <div class="console-line mb-1 @line.CssClass">@line.Text</div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="d-flex gap-2 justify-content-end">
+            <button class="btn btn-sm text-white" style="background-color: var(--primary-accent);" @onclick="RunWorkflow" disabled="@IsRunning">
+                @(IsRunning ? "Running..." : "▶ Run Workflow")
+            </button>
+            <button class="btn btn-sm btn-outline-secondary" @onclick="ResetWorkflow">Reset</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool IsRunning = false;
+    private int CurrentStep = -1;
+    private List<ConsoleLine> ConsoleLines = new();
+
+    private List<WorkflowStep> Steps = new()
+    {
+        new WorkflowStep("Checkout", "📥"),
+        new WorkflowStep("Setup Node", "⬢"),
+        new WorkflowStep("Install", "📦"),
+        new WorkflowStep("Test", "🧪"),
+        new WorkflowStep("Build", "🔨"),
+        new WorkflowStep("Deploy", "🚀"),
+    };
+
+    private string StatusClass => CurrentStep switch
+    {
+        -1 => "",
+        < 5 => "running",
+        5 => "success",
+        _ => ""
+    };
+
+    private string StatusText => CurrentStep switch
+    {
+        -1 => "Idle",
+        < 5 => "Running",
+        5 => "Success",
+        _ => "Idle"
+    };
+
+    private async Task RunWorkflow()
+    {
+        IsRunning = true;
+        CurrentStep = -1;
+        ConsoleLines.Clear();
+        StateHasChanged();
+
+        for (int i = 0; i < Steps.Count; i++)
+        {
+            CurrentStep = i;
+            Steps[i].IsActive = true;
+            ConsoleLines.Add(new ConsoleLine($"[{DateTime.Now:HH:mm:ss}] ▶ {Steps[i].Name}...", "cmd"));
+            StateHasChanged();
+            await Task.Delay(800);
+            ConsoleLines.Add(new ConsoleLine($"[{DateTime.Now:HH:mm:ss}] ✓ {Steps[i].Name} completed", "success"));
+            Steps[i].IsActive = false;
+            StateHasChanged();
+        }
+
+        IsRunning = false;
+    }
+
+    private void ResetWorkflow()
+    {
+        IsRunning = false;
+        CurrentStep = -1;
+        ConsoleLines.Clear();
+        foreach (var s in Steps) s.IsActive = false;
+    }
+}

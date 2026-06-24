@@ -1,0 +1,89 @@
+{
+  "id": "docker",
+  "title": "Docker Containers",
+  "subtitle": "Consistent Environments",
+  "description": "Learn to package your application with all its dependencies into an isolated container that runs anywhere.",
+  "badge": "Infrastructure",
+  "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-6 h-6\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10\" /></svg>",
+  "modules": [
+    {
+      "title": "Module 1: Containerization Basics",
+      "lessons": [
+        {
+          "id": "docker-intro",
+          "title": "Containerization Basics & Setup",
+          "goal": "Learn how containers solve environment drift and verify your Docker setup.",
+          "prerequisites": "Familiarity with the command line interface.",
+          "whyMatters": "The classic excuse 'it works on my machine' happens because developer setups differ from production servers (different Node/OS versions, missing system binaries, etc.). Docker solves this by packing the app, runtime, tools, and system libraries together into a single immutable container.",
+          "guide": "<h3>What is a Container?</h3><p>Unlike Virtual Machines (which package an entire guest operating system, making them slow and heavy), Docker containers share the host computer's operating system kernel. This makes them extremely lightweight, launching in milliseconds and using minimal RAM.</p><ul><li><strong>Docker Image:</strong> A read-only template that contains the instructions to build a container (analogous to a Class in programming).</li><li><strong>Docker Container:</strong> A running instance of an image (analogous to an Object).</li></ul>",
+          "commands": [
+            {
+              "code": "docker --version\ndocker run hello-world",
+              "explanation": "Checks that the Docker CLI daemon is running and executes a tiny official image to verify local networking and container execution."
+            }
+          ],
+          "errors": [
+            {
+              "title": "Cannot connect to the Docker daemon",
+              "solution": "Verify that Docker Desktop is actually launched and running in your taskbar. If you are on Linux, ensure your user account has permissions to access the docker group socket, or prefix with `sudo`."
+            }
+          ],
+          "summary": "You now understand why containers are superior to VMs, the difference between images and containers, and have verified Docker is running.",
+          "nextLessonId": "docker-dockerfile"
+        },
+        {
+          "id": "docker-dockerfile",
+          "title": "Writing a Dockerfile",
+          "goal": "Write a Dockerfile to package a Node.js web server application into a container image.",
+          "prerequisites": "Understanding images, containers, and web application structures.",
+          "whyMatters": "To containerize an application, you must define its recipe. A `Dockerfile` is a text document containing all the commands a user could call on the command line to assemble an image.",
+          "guide": "<h3>Understanding Dockerfile Instructions</h3><ul><li><code>FROM</code>: Sets the base image to build on (e.g. official Node runtime).</li><li><code>WORKDIR</code>: Sets the working directory inside the container's virtual filesystem.</li><li><code>COPY</code>: Copies files from your local computer into the container.</li><li><code>RUN</code>: Runs build commands inside the container (e.g. installing dependencies).</li><li><code>EXPOSE</code>: Documents which network port the container listens on.</li><li><code>CMD</code>: The command that runs *when* the container starts up.</li></ul><p>Use the interactive simulator below to see how these instructions compile into stacked, cached image layers.</p>",
+          "commands": [
+            {
+              "code": "FROM node:18-alpine\nWORKDIR /app\nCOPY package*.json ./\nRUN npm install\nCOPY . .\nEXPOSE 3000\nCMD [\"node\", \"server.js\"]",
+              "explanation": "A complete Dockerfile recipe. Note that package files are copied and installed *before* copying the source code to make use of Docker's layer caching system."
+            },
+            {
+              "code": "docker build -t my-web-app .",
+              "explanation": "Compiles the Dockerfile recipe into an image tagged (-t) 'my-web-app' using the current directory (.) as context."
+            }
+          ],
+          "errors": [
+            {
+              "title": "Dockerfile not found in current directory",
+              "solution": "Ensure your file is named exactly `Dockerfile` (with a capital D, and no file extension like `.txt` or `.docker`)."
+            }
+          ],
+          "summary": "You wrote a recipe for packaging your web app and built your very first custom container image.",
+          "nextLessonId": "docker-cache"
+        },
+        {
+          "id": "docker-cache",
+          "title": "Optimization & Port Mapping",
+          "goal": "Run containers in the background, map host ports, and leverage layer caching for faster builds.",
+          "prerequisites": "Building container images.",
+          "whyMatters": "Containers run in an isolated network sandbox. If a container web server listens on port 3000 inside the container, external requests from your browser won't reach it unless you explicitly map a port on your host machine to route traffic into the container.",
+          "guide": "<h3>Port Mapping and Background Execution</h3><p>To expose a container's port to your local machine, use the <code>-p</code> (publish) flag followed by <code>host_port:container_port</code>. To run a container in the background so it doesn't block your terminal, add the <code>-d</code> (detached) flag.</p><h3>Docker Layer Cache Optimization</h3><p>Every line in a Dockerfile creates a read-only layer. When you rebuild, Docker checks if files have changed. By copying package files and running installs *before* copying source code, your dependencies are cached. Coding changes will compile instantly without reinstalling packages.</p>",
+          "commands": [
+            {
+              "code": "docker run -d -p 8080:3000 --name running-app my-web-app",
+              "explanation": "Runs the container in the background (-d), maps port 8080 on your host to port 3000 inside the container, names it 'running-app', and uses 'my-web-app'."
+            },
+            {
+              "code": "docker ps\ndocker logs running-app",
+              "explanation": "Lists all active running containers, and prints the terminal console logs of your running-app container."
+            }
+          ],
+          "errors": [
+            {
+              "title": "Port already allocated / Address already in use",
+              "solution": "This means another application or container is already using host port 8080. Kill the conflicting application, or change the host port mapped (e.g. use `-p 9000:3000`)."
+            }
+          ],
+          "summary": "You mastered running container sandboxes, routing network traffic into them, and building cache-optimized images.",
+          "nextLessonId": "k8s-intro"
+        }
+      ]
+    }
+  ]
+}

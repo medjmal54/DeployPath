@@ -1,0 +1,131 @@
+@using DeployPathBlazor.Models
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+@implements IDisposable
+
+<div class="navigation-sidebar-content p-4">
+    @if (isLoading)
+    {
+        <div class="text-center py-4">
+            <span class="spinner-border spinner-border-sm text-primary" role="status"></span>
+            <div class="small text-muted mt-2" style="font-family: var(--font-sans);">Loading syllabus...</div>
+        </div>
+    }
+    else if (Category != null)
+    {
+        <div class="category-header mb-4 border-bottom pb-3 my-5">
+            <span class="card-badge d-inline-block mb-2">@Category.Badge</span>
+            <h2 class="h5 fw-bold text-white mb-1" style="font-family: var(--font-display);">@Category.Title</h2>
+            <p class="small text-muted mb-0" style="font-size: 0.8rem;">@Category.Subtitle</p>
+        </div>
+
+        <nav class="modules-nav">
+            @foreach (var mod in Category.Modules)
+            {
+                <div class="module-group mb-4">
+                    <h3 class="module-title small fw-bold text-uppercase mb-2" style="font-size: 0.75rem; letter-spacing: 0.5px; font-family: var(--font-display); color: var(--text-dark);">@mod.Title</h3>
+                    <ul class="list-unstyled d-flex flex-column gap-1 m-0 p-0">
+                        @foreach (var les in mod.Lessons)
+                        {
+                            var isActive = string.Equals(les.Id, ActiveLessonId, StringComparison.OrdinalIgnoreCase);
+                            <li>
+                                <a href="lesson/@Category.Id/@les.Id" 
+                                   class="lesson-link d-flex align-items-center gap-2 px-3 py-2 rounded text-decoration-none @(isActive ? "active" : "")"
+                                   style="font-family: var(--font-sans); font-size: 0.85rem;">
+                                    <span class="lesson-dot @(isActive ? "active" : "")"></span>
+                                    <span class="lesson-link-text text-truncate">@les.Title</span>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
+        </nav>
+    }
+</div>
+
+@code {
+    private Category? Category;
+    private string? ActiveModuleId;
+    private string? ActiveLessonId;
+    private bool isLoading;
+
+    protected override void OnInitialized()
+    {
+        NavigationManager.LocationChanged += OnLocationChanged;
+        _ = LoadCategoryAsync();
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        _ = LoadCategoryAsync();
+    }
+
+    private async Task LoadCategoryAsync()
+    {
+        var relative = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        var parts = relative.Split('/');
+        
+        if (parts.Length >= 3 && string.Equals(parts[0], "lesson", StringComparison.OrdinalIgnoreCase))
+        {
+            var moduleId = parts[1];
+            var lessonId = parts[2];
+
+            ActiveLessonId = lessonId;
+
+            if (moduleId != ActiveModuleId)
+            {
+                ActiveModuleId = moduleId;
+                isLoading = true;
+                StateHasChanged();
+
+                try
+                {
+                    var filename = moduleId.ToLower() switch
+                    {
+                        "git" => "git.json",
+                        "gha" => "github-actions.json",
+                        "docker" => "docker.json",
+                        "k8s" => "k8s.json",
+                        _ => null
+                    };
+
+                    if (filename != null)
+                    {
+                        Category = await Http.GetFromJsonAsync<Category>($"sample-data/{filename}");
+                    }
+                    else
+                    {
+                        Category = null;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error loading category details: {ex.Message}");
+                    Category = null;
+                }
+                finally
+                {
+                    isLoading = false;
+                    StateHasChanged();
+                }
+            }
+            else
+            {
+                StateHasChanged();
+            }
+        }
+        else
+        {
+            ActiveModuleId = null;
+            ActiveLessonId = null;
+            Category = null;
+            StateHasChanged();
+        }
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+}

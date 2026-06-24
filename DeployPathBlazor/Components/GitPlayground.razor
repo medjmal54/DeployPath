@@ -1,0 +1,120 @@
+﻿
+<div class="playground-wrapper rounded-3 p-4 my-4 border">
+    <div class="playground-header d-flex justify-content-between align-items-center pb-3 mb-4 border-bottom">
+        <h3 class="playground-title h5 fw-bold mb-0 d-flex align-items-center gap-2">
+            <span>🌿</span> Git Playground
+        </h3>
+        <span class="playground-badge">Interactive</span>
+    </div>
+
+    <div class="git-playground-container d-flex flex-column gap-4">
+        <!-- Visual Columns -->
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="git-column rounded-2 p-3 d-flex flex-column" style="min-height: 160px; background-color: var(--surface-darker); border: 1px solid var(--border-light);">
+                    <div class="git-column-title text-center text-uppercase small fw-bold pb-2 mb-3" style="color: var(--text-muted); border-bottom: 1px solid var(--border-light);">Working Directory</div>
+                    <div class="git-file-list flex-grow-1 d-flex flex-column gap-2 overflow-auto">
+                        @foreach (var file in WorkingDirectory)
+                        {
+                            <div class="git-file-item d-flex justify-content-between align-items-center rounded-2 px-3 py-2" style="background-color: var(--surface-color); border: 1px solid var(--border-color); font-family: var(--font-mono); font-size: 0.8rem;">
+                                <span>@file.Name</span>
+                                <span class="badge" style="font-size: 0.65rem;">@file.Status</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="git-column rounded-2 p-3 d-flex flex-column" style="min-height: 160px; background-color: var(--surface-darker); border: 1px solid var(--border-light);">
+                    <div class="git-column-title text-center text-uppercase small fw-bold pb-2 mb-3" style="color: var(--text-muted); border-bottom: 1px solid var(--border-light);">Staging Area</div>
+                    <div class="git-file-list flex-grow-1 d-flex flex-column gap-2 overflow-auto">
+                        @foreach (var file in StagingArea)
+                        {
+                            <div class="git-file-item d-flex justify-content-between align-items-center rounded-2 px-3 py-2" style="background-color: var(--surface-color); border: 1px solid var(--border-color); font-family: var(--font-mono); font-size: 0.8rem;">
+                                <span>@file.Name</span>
+                                <span class="badge text-bg-success" style="font-size: 0.65rem;">staged</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="git-column rounded-2 p-3 d-flex flex-column" style="min-height: 160px; background-color: var(--surface-darker); border: 1px solid var(--border-light);">
+                    <div class="git-column-title text-center text-uppercase small fw-bold pb-2 mb-3" style="color: var(--text-muted); border-bottom: 1px solid var(--border-light);">Repository</div>
+                    <div class="git-file-list flex-grow-1 d-flex flex-column gap-2 overflow-auto">
+                        @foreach (var commit in Commits)
+                        {
+                            <div class="git-commit-bubble text-white text-center rounded-4 px-3 py-2" style="background: linear-gradient(135deg, var(--primary-accent), #6366F1); font-size: 0.75rem; font-weight: 600;">
+                                <div>@commit.Hash</div>
+                                <div class="small opacity-75">@commit.Message</div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions Panel -->
+        <div class="git-actions-panel d-flex gap-3 align-items-end flex-wrap">
+            <div class="git-input-group flex-grow-1 d-flex flex-column gap-2">
+                <label class="small fw-semibold" style="color: var(--text-muted);">Commit Message</label>
+                <input type="text" class="git-text-input form-control" style="background-color: var(--surface-darker); border: 1px solid var(--border-color); color: var(--text-primary);" @bind="CommitMessage" placeholder="e.g. Initial commit">
+            </div>
+            <button class="git-btn btn text-white fw-semibold" style="background-color: var(--success);" @onclick="Commit" disabled="@(!StagingArea.Any())">
+                Commit
+            </button>
+            <button class="git-btn btn text-white fw-semibold" @onclick="StageAll">
+                Stage All
+            </button>
+            <button class="git-btn btn text-white fw-semibold" style="background-color: var(--danger);" @onclick="Reset">
+                Reset
+            </button>
+        </div>
+    </div>
+</div>
+
+
+@code{
+    private string CommitMessage { get; set; } = "";
+
+    private List<GitFile> WorkingDirectory = new()
+    {
+        new GitFile("index.html", "modified"),
+        new GitFile("styles.css", "untracked"),
+        new GitFile("app.js", "modified"),
+    };
+
+    private List<GitFile> StagingArea = new();
+    private List<GitCommit> Commits = new();
+
+    private void StageAll()
+    {
+        StagingArea.AddRange(WorkingDirectory);
+        WorkingDirectory.Clear();
+    }
+
+    private void Commit()
+    {
+        if (!StagingArea.Any() || string.IsNullOrWhiteSpace(CommitMessage)) return;
+
+        Commits.Add(new GitCommit(
+            $"c{Commits.Count + 1:x4}",
+            CommitMessage
+        ));
+        StagingArea.Clear();
+        CommitMessage = "";
+    }
+
+    private void Reset()
+    {
+        WorkingDirectory = new()
+        {
+            new GitFile("index.html", "modified"),
+            new GitFile("styles.css", "untracked"),
+            new GitFile("app.js", "modified"),
+        };
+        StagingArea.Clear();
+        Commits.Clear();
+        CommitMessage = "";
+    }
+}

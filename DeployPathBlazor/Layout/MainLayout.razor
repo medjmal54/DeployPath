@@ -1,0 +1,48 @@
+@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
+@implements IDisposable
+
+<div class="app-shell">
+    <Header />
+
+    <div class="main-layout">
+        @if (IsLessonPage)
+        {
+            <aside class="navigation-sidebar my-5">
+                <NavMenu />
+            </aside>
+        }
+        <main class="main-viewport">
+            <div class="content-container">
+                @Body
+            </div>
+        </main>
+    </div>
+</div>
+
+@code {
+    private bool IsLessonPage;
+
+    protected override void OnInitialized()
+    {
+        NavigationManager.LocationChanged += OnLocationChanged;
+        UpdateLayoutState();
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        UpdateLayoutState();
+        StateHasChanged();
+    }
+
+    private void UpdateLayoutState()
+    {
+        var relative = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        IsLessonPage = relative.StartsWith("lesson/", StringComparison.OrdinalIgnoreCase);
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+}

@@ -1,0 +1,83 @@
+﻿<div class="playground-wrapper rounded-3 p-4 my-4 border">
+    <div class="playground-header d-flex justify-content-between align-items-center pb-3 mb-4 border-bottom">
+        <h3 class="playground-title h5 fw-bold mb-0 d-flex align-items-center gap-2">
+            <span>🐳</span> Docker Layer Visualizer
+        </h3>
+        <span class="playground-badge">Interactive</span>
+    </div>
+
+    <div class="row g-4">
+        <!-- Layers Stack -->
+        <div class="col-lg-6">
+            <div class="d-flex flex-column-reverse gap-2 rounded-2 p-3" style="background-color: var(--surface-darker); border: 1px solid var(--border-light); min-height: 220px;">
+                @foreach (var layer in Layers)
+                {
+                    <div class="docker-layer d-flex justify-content-between align-items-center rounded-2 px-3 py-2 @layer.StateClass" style="font-family: var(--font-mono); font-size: 0.75rem; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+                        <span>@layer.Instruction</span>
+                        <span class="docker-layer-size rounded-1 px-2 py-1" style="background-color: rgba(0,0,0,0.3); font-size: 0.65rem; color: var(--text-muted);">@layer.Size</span>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Dockerfile Preview -->
+        <div class="col-lg-6">
+            <div class="docker-controls-info d-flex flex-column gap-3">
+                <div class="docker-file-preview rounded-2 p-3" style="background-color: #0b0f19; border: 1px solid var(--border-light); font-family: var(--font-mono); font-size: 0.8rem; line-height: 1.4;">
+                    @foreach (var line in DockerfileLines)
+                    {
+                        <div class="docker-file-line px-1 py-1 rounded @line.HighlightClass">@line.Text</div>
+                    }
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm text-white" style="background-color: var(--primary-accent);" @onclick="BuildNextLayer" disabled="@(!HasMoreLayers)">
+                        🔨 Build Next Layer
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" @onclick="ResetLayers">Reset</button>
+                </div>
+                <p class="text-white small mb-0">Each layer is cached. Rebuild only changed layers for faster builds.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<DockerLayer> AllLayers = new()
+    {
+        new DockerLayer("FROM node:18-alpine", "142 MB"),
+        new DockerLayer("WORKDIR /app", "0 B"),
+        new DockerLayer("COPY package*.json ./", "12 KB"),
+        new DockerLayer("RUN npm ci", "89 MB"),
+        new DockerLayer("COPY . .", "45 KB"),
+        new DockerLayer("EXPOSE 3000", "0 B"),
+        new DockerLayer("CMD [\"node\", \"server.js\"]", "0 B"),
+    };
+
+    private List<DockerLayer> Layers = new();
+    private int BuiltCount = 0;
+
+    private bool HasMoreLayers => BuiltCount < AllLayers.Count;
+
+    private List<DockerfileLine> DockerfileLines => AllLayers.Select((l, i) => new DockerfileLine(
+        l.Instruction,
+        i < BuiltCount ? "highlight" : ""
+    )).ToList();
+
+    private void BuildNextLayer()
+    {
+        if (BuiltCount < AllLayers.Count)
+        {
+            var layer = AllLayers[BuiltCount];
+            layer.StateClass = "built";
+            Layers.Insert(0, layer);
+            BuiltCount++;
+        }
+    }
+
+    private void ResetLayers()
+    {
+        Layers.Clear();
+        BuiltCount = 0;
+        foreach (var l in AllLayers) l.StateClass = "";
+    }
+}

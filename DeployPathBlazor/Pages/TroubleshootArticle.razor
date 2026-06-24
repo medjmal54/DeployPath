@@ -1,0 +1,240 @@
+@page "/troubleshoot-article/{slug}"
+@layout TroubleShootLayout
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+@if (isLoading)
+{
+    <div class="article-loading d-flex flex-column align-items-center justify-content-center vh-100">
+        <div class="spinner-ring mb-4">
+            <div></div><div></div><div></div><div></div>
+        </div>
+        <h2 class="h5 text-danger fw-light" style="font-family: var(--font-sans);">Loading troubleshooting guide...</h2>
+    </div>
+}
+else if (!string.IsNullOrEmpty(error) || article == null)
+{
+    <div class="article-error d-flex align-items-center justify-content-center vh-100">
+        <div class="text-center p-5 rounded-4 border" style="background: var(--surface-color); max-width: 500px;">
+            <div class="error-anim mb-4">⚠️</div>
+            <h2 class="h3 fw-bold text-danger mb-3" style="font-family: var(--font-display);">Article Not Found</h2>
+            <p class="text-white mb-4" style="font-family: var(--font-sans);">@error</p>
+            <button class="btn btn-primary px-4 py-2 rounded-pill" @onclick='() => NavigateTo("troubleshoot")'>
+                ← Back to Troubleshooting
+            </button>
+        </div>
+    </div>
+}
+else
+{
+    <PageTitle>@article.Title - Troubleshoot - DeployPath</PageTitle>
+
+    <!-- Hero Header with Category Color -->
+    <div class="article-hero position-relative overflow-hidden my-5">
+        <div class="article-hero-glow position-absolute" style="background: @GetCategoryColor(article.Category); opacity: 0.15; filter: blur(80px);"></div>
+        <div class="container position-relative py-5">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 text-center">          
+                    <!-- Category Badge -->
+                    <span class="article-cat-badge d-inline-flex align-items-center gap-2 mb-3" style="background: @GetCategoryBg(article.Category); color: @GetCategoryColor(article.Category); border: 1px solid @GetCategoryBorder(article.Category);">
+                        <img src="icons/@GetCategoryIcon(article.Category)" alt="@article.Category" /> @article.Category
+                    </span>
+                    
+                    <!-- Title -->
+                    <h1 class="display-5 fw-bold text-white mb-3" style="font-family: var(--font-display); line-height: 1.2;">@article.Title</h1>
+                    <p class="lead text-white-50 mb-0" style="font-family: var(--font-sans); font-size: 1.1rem; max-width: 600px; margin: 0 auto;">@article.Description</p>
+                    
+                    <!-- Severity Indicator -->
+                    <div class="d-flex align-items-center justify-content-center gap-2 mt-4">
+                        <span class="severity-dot @GetSeverityClass(article.Severity)"></span>
+                        <span class="small">@article.Severity Severity</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container pb-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                
+                <!-- What's Happening Card -->
+                <div class="article-card rounded-4 p-4 mb-4 position-relative overflow-hidden">
+                    <div class="position-absolute top-0 start-0 w-100" style="height: 3px; background: @GetCategoryColor(article.Category);"></div>
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="article-icon-box rounded-3 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background: @GetCategoryBg(article.Category); color: @GetCategoryColor(article.Category);">
+                            <span style="font-size: 1.3rem;">ℹ️</span>
+                        </div>
+                        <h4 class="h5 fw-bold text-danger mb-0" style="font-family: var(--font-display);">What's Happening</h4>
+                    </div>
+                    <p class="text-white mb-0" style="line-height: 1.7;">@article.Guide</p>
+                </div>
+
+                <!-- Quick Fix Command (if available) -->
+                @if (!string.IsNullOrEmpty(article.Command))
+                {
+                    <div class="article-card rounded-4 p-0 mb-4 overflow-hidden">
+                        <div class="d-flex align-items-center justify-content-between px-4 py-3" style="background: rgba(0,0,0,0.2); border-bottom: 1px solid var(--border-light);">
+                            <div class="d-flex align-items-center gap-2">
+                                <span style="font-size: 1.1rem;">⚡</span>
+                                <span class="fw-semibold small text-white">Quick Fix</span>
+                            </div>
+                            <button class="copy-btn-article btn btn-sm d-flex align-items-center gap-2" @onclick="() => CopyCommand(article.Command)">
+                                <span>@(copiedCode == article.Command ? "✅ Copied!" : "📋 Copy")</span>
+                            </button>
+                        </div>
+                        <div class="p-4 position-relative" style="background: #0d1117;">
+                            <pre class="m-0"><code style="font-family: var(--font-mono); color: #a5d6ff; font-size: 0.9rem; line-height: 1.6;">@article.Command</code></pre>
+                        </div>
+                    </div>
+                }
+
+                <!-- Solution Steps -->
+                <div class="article-card rounded-4 p-4 mb-4">
+                    <div class="d-flex align-items-center gap-3 mb-4">
+                        <div class="article-icon-box rounded-3 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background: rgba(34, 197, 94, 0.1); color: var(--success);">
+                            <span style="font-size: 1.3rem;">✅</span>
+                        </div>
+                        <h4 class="h5 fw-bold text-success mb-0" style="font-family: var(--font-display);">Solution</h4>
+                    </div>
+                    <div class="article-solution text-white" style="line-height: 1.8;">
+                        @((MarkupString)article.Solution)
+                    </div>
+                </div>
+
+                <!-- Related Tags -->
+                @if (article.Tags?.Any() == true)
+                {
+                    <div class="mb-5">
+                        <h5 class="h6 fw-bold text-muted mb-3 text-uppercase" style="letter-spacing: 1px; font-size: 0.75rem;">Related Tags</h5>
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var tag in article.Tags)
+                            {
+                                <span class="article-tag rounded-pill px-3 py-1">@tag</span>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <!-- Navigation Footer -->
+                <div class="article-nav-footer d-flex flex-wrap justify-content-between align-items-center gap-3 pt-4 mt-5" style="border-top: 1px solid var(--border-light);">
+                    <button class="article-nav-btn btn d-flex align-items-center gap-2" @onclick='() => NavigateTo("troubleshoot")'>
+                        <span>←</span> Back to Troubleshooting
+                    </button>
+                    <div class="d-flex gap-2">
+                        <button class="article-nav-btn btn d-flex align-items-center gap-2" @onclick="ShareArticle">
+                            <span>🔗</span> Share
+                        </button>
+                        <button class="article-nav-btn btn d-flex align-items-center gap-2" @onclick="PrintArticle">
+                            <span>🖨️</span> Print
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string Slug { get; set; } = "";
+
+    private TroubleshootArticleInfo? article;
+    private bool isLoading = true;
+    private string? error;
+    private string? copiedCode;
+
+    // Category color mapping
+    private Dictionary<string, CategoryTheme> CategoryThemes = new()
+    {
+        ["Git"] = new("#F05032", "rgba(240, 80, 50, 0.12)", "rgba(240, 80, 50, 0.35)", "Git.svg"),
+        ["Docker"] = new("#0db7ed", "rgba(13, 183, 237, 0.12)", "rgba(13, 183, 237, 0.35)", "Docker.svg"),
+        ["K8s"] = new("#326ce5", "rgba(50, 108, 229, 0.12)", "rgba(50, 108, 229, 0.35)", "K8s.svg"),
+        ["CI/CD"] = new("#A78BFA", "rgba(167, 139, 250, 0.12)", "rgba(167, 139, 250, 0.35)", "githubactions-svgrepo-com.svg"),
+        ["Auth"] = new("#F59E0B", "rgba(245, 158, 11, 0.12)", "rgba(245, 158, 11, 0.35)", "Auth.svg"),
+    };
+
+    protected override async Task OnParametersSetAsync()
+    {
+        isLoading = true;
+        error = null;
+        copiedCode = null;
+        StateHasChanged();
+
+        try
+        {
+            var articles = await Http.GetFromJsonAsync<List<TroubleshootArticleInfo>>("sample-data/troubleshoot.json");
+            if (articles == null || !articles.Any())
+            {
+                error = "Failed to load troubleshooting articles database.";
+                return;
+            }
+
+            article = articles.FirstOrDefault(a => string.Equals(a.Slug, Slug, StringComparison.OrdinalIgnoreCase));
+            if (article == null)
+            {
+                error = $"No troubleshooting guide found for '{Slug}'.";
+            }
+        }
+        catch (Exception ex)
+        {
+            error = $"Error loading troubleshooting guide: {ex.Message}";
+            Console.WriteLine(ex);
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void NavigateTo(string url) => NavigationManager.NavigateTo(url);
+
+    private async Task CopyCommand(string code)
+    {
+        await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", code);
+        copiedCode = code;
+        StateHasChanged();
+        await Task.Delay(2000);
+        if (copiedCode == code)
+        {
+            copiedCode = null;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ShareArticle()
+    {
+        var url = NavigationManager.Uri;
+        await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", url);
+    }
+
+    private async Task PrintArticle()
+    {
+        await JSRuntime.InvokeVoidAsync("print");
+    }
+
+    private string GetCategoryColor(string category) =>
+        CategoryThemes.TryGetValue(category, out var theme) ? theme.Color : "#94A3B8";
+
+    private string GetCategoryBg(string category) =>
+        CategoryThemes.TryGetValue(category, out var theme) ? theme.Bg : "rgba(148,163,184,0.12)";
+
+    private string GetCategoryBorder(string category) =>
+        CategoryThemes.TryGetValue(category, out var theme) ? theme.Border : "rgba(148,163,184,0.35)";
+
+    private string GetCategoryIcon(string category) =>
+        CategoryThemes.TryGetValue(category, out var theme) ? theme.Icon : "🔧";
+
+    private string GetSeverityClass(string severity) => severity?.ToLower() switch
+    {
+        "high" => "severity-high",
+        "medium" => "severity-medium",
+        "low" => "severity-low",
+        _ => "severity-medium"
+    };
+
+    public record CategoryTheme(string Color, string Bg, string Border, string Icon);
+
+}

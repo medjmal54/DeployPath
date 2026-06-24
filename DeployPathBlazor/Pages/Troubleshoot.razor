@@ -1,0 +1,310 @@
+@page "/troubleshoot"
+@layout LandingLayout
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Troubleshooting - DeployPath</PageTitle>
+
+<!-- Hero Search Section -->
+<div class="troubleshoot-hero text-center py-5 mb-5">
+    <div class="container" style="max-width: 700px;">
+        <div class="troubleshoot-hero-icon mb-3">🔧</div>
+        <h1 class="display-5 fw-bold mb-3" style="font-family: var(--font-display);">Troubleshooting Hub</h1>
+        <p class="text-white-50 lead mb-4">Search symptoms, filter by stack, and fix errors fast.</p>
+        
+        <!-- Interactive Search -->
+        <div class="position-relative">
+            <input type="text"
+                   class="troubleshoot-search form-control form-control-lg ps-5"
+                   placeholder="Search errors (e.g. 'push rejected', 'pod crash', 'auth failed')..."
+                   @bind="_searchQuery"
+                   @bind:event="oninput"
+                   @onkeyup="HandleSearch" />
+            <svg class="position-absolute" style="left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-muted);" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            @if (!string.IsNullOrEmpty(_searchQuery))
+            {
+                <button class="btn btn-sm position-absolute" style="right: 10px; top: 50%; transform: translateY(-50%);" @onclick="ClearSearch">✕</button>
+            }
+        </div>
+        
+        @if (_filteredCards?.Any() == true && !string.IsNullOrEmpty(_searchQuery))
+        {
+            <div class="mt-2 text-white small">@_filteredCards.Count results found</div>
+        }
+    </div>
+</div>
+
+<!-- Category Filter Tabs -->
+<div class="container mb-4">
+    <div class="d-flex flex-wrap gap-2 justify-content-center">
+        <button class="filter-pill @GetFilterClass(null)" @onclick='() => SetFilter(null)'>
+            <span>🔥</span> All <span class="filter-count">@AllCards.Count</span>
+        </button>
+        @foreach (var cat in Categories)
+        {
+            <button class="filter-pill @GetFilterClass(cat.Key)" style="--cat-color: @cat.Value.Color" @onclick='() => SetFilter(cat.Key)'>
+                <span><img src="icons/@cat.Value.Icon" alt="@cat.Key" /></span> @cat.Key <span class="filter-count">@AllCards.Count(c => c.Category == cat.Key)</span>
+            </button>
+        }
+    </div>
+</div>
+
+<!-- Cards Grid -->
+<div class="container mb-5">
+    <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+        @foreach (var card in DisplayCards)
+        {
+            var catStyle = GetCategoryStyle(card.Category);
+            <div class="col">
+                <div class="troubleshoot-card-v2 rounded-3 p-0 overflow-hidden position-relative"
+                     style="--card-accent: @catStyle.Color;"
+                     @onclick='() => ToggleCard(card.Id)'>
+                    
+                    <!-- Top accent bar -->
+                    <div class="card-accent-bar" style="background: @catStyle.Color;"></div>
+                    
+                    <div class="p-4">
+                        <!-- Category badge -->
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <span class="cat-badge" style="background: @catStyle.Bg; color: @catStyle.Color; border: 1px solid @catStyle.Border;">
+                                <img src="icons/@catStyle.Icon" /> @card.Category
+                            </span>
+                            <span class="text-white small">@card.Severity</span>
+                        </div>
+                        
+                        <!-- Title & Description -->
+                        <h3 class="h5 fw-bold mb-2">@card.Title</h3>
+                        <p class="text-white-50 small mb-3">@card.Description</p>
+                        
+                        <!-- Tags -->
+                        <div class="d-flex flex-wrap gap-1 mb-3">
+                            @foreach (var tag in card.Tags)
+                            {
+                                <span class="tag-pill">@tag</span>
+                            }
+                        </div>
+                        
+                        <!-- Expandable Solution -->
+                        <div class="solution-panel @(card.IsExpanded ? "expanded" : "")">
+                            <div class="solution-content pt-3 border-top">
+                                <h6 class="fw-bold mb-2" style="color: var(--success);">✅ Solution</h6>
+                                <p class="text-white small mb-3">@card.Solution</p>
+                                
+                                @if (!string.IsNullOrEmpty(card.Command))
+                                {
+                                    <div class="command-snippet rounded-2 p-2 mb-3 d-flex justify-content-between align-items-center" style="background: rgba(0,0,0,0.3); font-family: var(--font-mono); font-size: 0.8rem;">
+                                        <code class="text-info">@card.Command</code>
+                                        <button class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size: 0.7rem;" @onclick:stopPropagation @onclick="() => CopyCommand(card.Command)">📋</button>
+                                    </div>
+                                }
+                                
+                                <a href="@card.Url" class="btn btn-sm text-white w-100" style="background: @catStyle.Color;" @onclick:stopPropagation>
+                                    Read Full Guide →
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <!-- Expand hint -->
+                        <div class="text-center mt-2">
+                            <span class="expand-hint text-white-50 small">@(card.IsExpanded ? "▲ Click to collapse" : "▼ Click to expand solution")</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+    
+    @if (!DisplayCards.Any())
+    {
+        <div class="text-center py-5">
+            <div class="display-1 mb-3">🔍</div>
+            <h3 class="h4 fw-bold">No results found</h3>
+            <p class="text-muted">Try a different search term or category filter.</p>
+            <button class="btn btn-outline-primary" @onclick="ClearSearch">Clear Filters</button>
+        </div>
+    }
+</div>
+
+<!-- Quick Stats Bar -->
+<div class="container mb-5">
+    <div class="stats-bar rounded-3 p-4 d-flex flex-wrap justify-content-center gap-4 text-center">
+        <div>
+            <div class="stats-number">@AllCards.Count</div>
+            <div class="stats-label small" style="color: orangered;">Total Issues</div>
+        </div>
+        <div class="vr d-none d-md-block" style="background: var(--border-light);"></div>
+        <div>
+            <div class="stats-number">@Categories.Count</div>
+            <div class="stats-label small" style="color: orange;">Categories</div>
+        </div>
+        <div class="vr d-none d-md-block" style="background: var(--border-light);"></div>
+        <div>
+            <div class="stats-number">@AllCards.Count(c => !string.IsNullOrEmpty(c.Command))</div>
+            <div class="stats-label small" style="color: lawngreen;">Quick Fixes</div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string _searchQuery = "";
+    private string? _activeFilter = null;
+    private List<TroubleshootCard> _filteredCards = new();
+
+    // Category definitions with colors
+    private Dictionary<string, CategoryStyle> Categories = new()
+    {
+        ["Git"] = new("#F05032", "rgba(240, 80, 50, 0.15)", "rgba(240, 80, 50, 0.3)", "Git.svg"),
+        ["Docker"] = new("#0db7ed", "rgba(13, 183, 237, 0.15)", "rgba(13, 183, 237, 0.3)", "Docker.svg"),
+        ["K8s"] = new("#326ce5", "rgba(50, 108, 229, 0.15)", "rgba(50, 108, 229, 0.3)", "k8s.svg"),
+        ["CI/CD"] = new("#A78BFA", "rgba(167, 139, 250, 0.15)", "rgba(167, 139, 250, 0.3)", "githubactions-svgrepo-com.svg"),
+        ["Auth"] = new("#F59E0B", "rgba(245, 158, 11, 0.15)", "rgba(245, 158, 11, 0.3)", "Auth.svg"),
+    };
+
+    private List<TroubleshootCard> AllCards = new()
+    {
+        new TroubleshootCard("git-push-rejected", "Git", "Push Rejected", "High",
+            "Remote rejected your push. Usually a non-fast-forward or protected branch issue.",
+            "Run 'git pull origin main' first to fetch remote changes, then push again. If you have local commits you want to keep, use 'git pull --rebase'.",
+            "git pull origin main --rebase",
+            new[] { "git", "push", "rejected", "fast-forward" },
+            "troubleshoot-article/git-push-rejected"),
+        
+        new TroubleshootCard("auth-failed", "Auth", "Auth Failed", "High",
+            "SSH key, PAT token, or credential helper misconfiguration.",
+            "Check your SSH key is added to ssh-agent with 'ssh-add -l'. If using HTTPS, verify your PAT token hasn't expired. For GitHub, generate a new token at Settings > Developer settings.",
+            "ssh-add -l",
+            new[] { "auth", "ssh", "token", "credentials" },
+            "troubleshoot-article/auth-failed"),
+        
+        new TroubleshootCard("merge-conflict", "Git", "Merge Conflicts", "Medium",
+            "Two branches modified the same lines. Resolve and commit.",
+            "Open the conflicting files, look for <<<<<<< HEAD markers, choose which code to keep, remove the markers, then 'git add .' and 'git commit'.",
+            "git add . && git commit -m 'resolve merge conflict'",
+            new[] { "git", "merge", "conflict", "rebase" },
+            "troubleshoot-article/merge-conflict"),
+        
+        new TroubleshootCard("docker-not-starting", "Docker", "Container Crash", "High",
+            "Exit code non-zero, port conflicts, or missing env vars.",
+            "Check logs with 'docker logs <container>'. Verify port isn't already in use with 'lsof -i :PORT'. Ensure all required environment variables are set.",
+            "docker logs --tail 50 <container_id>",
+            new[] { "docker", "container", "crash", "exit" },
+            "troubleshoot-article/docker-not-starting"),
+        
+        new TroubleshootCard("k8s-pod-errors", "K8s", "K8s Pod Errors", "High",
+            "CrashLoopBackOff, ImagePullBackOff, or OOMKilled.",
+            "Run 'kubectl describe pod <pod>' to see events. For ImagePullBackOff, check image name and registry auth. For OOMKilled, increase memory limits in the deployment.",
+            "kubectl describe pod <pod-name> -n <namespace>",
+            new[] { "kubernetes", "pod", "crash", "oom" },
+            "troubleshoot-article/k8s-pod-errors"),
+        
+        new TroubleshootCard("workflow-fails", "CI/CD", "Workflow Fails", "Medium",
+            "GitHub Actions job failing at build, test, or deploy step.",
+            "Check the Actions tab for the exact error step. Common fixes: update action versions, add missing secrets, fix working-directory paths, or increase timeout limits.",
+            "gh run view --log-failed",
+            new[] { "github-actions", "ci", "workflow", "build" },
+            "troubleshoot-article/workflow-fails"),
+        
+        new TroubleshootCard("docker-build-fail", "Docker", "Build Fails", "Medium",
+            "Dockerfile syntax error or missing base image.",
+            "Check Dockerfile syntax with 'docker build --no-cache .'. Verify base image exists with 'docker pull <image>'. Check for typos in COPY paths.",
+            "docker build --no-cache -t myapp .",
+            new[] { "docker", "build", "dockerfile", "image" },
+            "troubleshoot-article/docker-build-fail"),
+        
+        new TroubleshootCard("k8s-service-unreachable", "K8s", "Service Unreachable", "Medium",
+            "Can't reach a service inside the cluster from outside.",
+            "Check service type (LoadBalancer/NodePort/Ingress). Verify selector labels match pod labels. Test with 'kubectl port-forward svc/<name> 8080:80'.",
+            "kubectl get svc -o wide",
+            new[] { "kubernetes", "service", "network", "ingress" },
+            "troubleshoot-article/k8s-service-unreachable"),
+        
+        new TroubleshootCard("gha-secret-missing", "CI/CD", "Secret Not Found", "Low",
+            "Workflow references a secret that doesn't exist.",
+            "Go to Settings > Secrets and variables > Actions. Add the missing secret. For organization secrets, ensure the repository has access.",
+            "gh secret set MY_SECRET --body 'value'",
+            new[] { "github-actions", "secrets", "env", "variables" },
+            "troubleshoot-article/gha-secret-missing"),
+    };
+
+    private List<TroubleshootCard> DisplayCards => _filteredCards.Any() || !string.IsNullOrEmpty(_searchQuery) || _activeFilter != null
+        ? _filteredCards
+        : AllCards;
+
+    private void HandleSearch(KeyboardEventArgs e)
+    {
+        ApplyFilters();
+    }
+
+    private void SetFilter(string? category)
+    {
+        _activeFilter = category;
+        ApplyFilters();
+    }
+
+    private void ApplyFilters()
+    {
+        var query = _searchQuery?.ToLowerInvariant() ?? "";
+        
+        _filteredCards = AllCards.Where(c =>
+        {
+            var matchesSearch = string.IsNullOrEmpty(query) ||
+                c.Title.ToLowerInvariant().Contains(query) ||
+                c.Description.ToLowerInvariant().Contains(query) ||
+                c.Tags.Any(t => t.ToLowerInvariant().Contains(query)) ||
+                c.Category.ToLowerInvariant().Contains(query);
+            
+            var matchesCategory = _activeFilter == null || c.Category == _activeFilter;
+            
+            return matchesSearch && matchesCategory;
+        }).ToList();
+    }
+
+    private void ClearSearch()
+    {
+        _searchQuery = "";
+        _activeFilter = null;
+        _filteredCards = new();
+    }
+
+    private void ToggleCard(string id)
+    {
+        var card = AllCards.FirstOrDefault(c => c.Id == id);
+        if (card != null) card.IsExpanded = !card.IsExpanded;
+    }
+
+    private async Task CopyCommand(string? command)
+    {
+        if (!string.IsNullOrEmpty(command))
+            await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", command);
+    }
+
+    private string GetFilterClass(string? category) => _activeFilter == category ? "active" : "";
+
+    private CategoryStyle GetCategoryStyle(string category) =>
+        Categories.TryGetValue(category, out var style) ? style : new("#94A3B8", "rgba(148,163,184,0.15)", "rgba(148,163,184,0.3)", "🔧");
+
+    public class TroubleshootCard
+    {
+        public string Id { get; set; }
+        public string Category { get; set; }
+        public string Title { get; set; }
+        public string Severity { get; set; }
+        public string Description { get; set; }
+        public string Solution { get; set; }
+        public string? Command { get; set; }
+        public string[] Tags { get; set; }
+        public string Url { get; set; }
+        public bool IsExpanded { get; set; }
+
+        public TroubleshootCard(string id, string category, string title, string severity,
+            string description, string solution, string? command, string[] tags, string url)
+        {
+            Id = id; Category = category; Title = title; Severity = severity;
+            Description = description; Solution = solution; Command = command; Tags = tags; Url = url;
+        }
+    }
+
+    public record CategoryStyle(string Color, string Bg, string Border, string Icon);
+}

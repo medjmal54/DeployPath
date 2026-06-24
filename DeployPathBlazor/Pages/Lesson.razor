@@ -1,0 +1,436 @@
+@page "/lesson/{module}/{slug}"
+@using LessonModel = DeployPathBlazor.Models.Lesson
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+@layout MainLayout
+
+@if (isLoading)
+{
+    <div class="lesson-loading d-flex flex-column align-items-center justify-content-center vh-100">
+        <div class="lesson-spinner mb-4">
+            <div class="spinner-orbit"></div>
+            <div class="spinner-core"></div>
+        </div>
+        <h2 class="h5 text-muted fw-light" style="font-family: var(--font-sans);">Loading lesson...</h2>
+    </div>
+}
+else if (!string.IsNullOrEmpty(error) || activeLesson == null)
+{
+    <div class="lesson-error d-flex align-items-center justify-content-center vh-100">
+        <div class="text-center p-5 rounded-4 border" style="background: var(--surface-color); max-width: 500px;">
+            <div class="error-bounce mb-4">📚</div>
+            <h2 class="h3 fw-bold text-white mb-3" style="font-family: var(--font-display);">Lesson Not Found</h2>
+            <p class="text-muted mb-4">@error</p>
+            <button class="btn btn-primary px-4 py-2 rounded-pill" @onclick='() => NavigateTo("")'>
+                ← Back to Home
+            </button>
+        </div>
+    </div>
+}
+else
+{
+    <PageTitle>@activeLesson.Title - DeployPath</PageTitle>
+
+    <!-- Hero Header with Category Color -->
+    <div class="lesson-hero position-relative overflow-hidden mb-5 my-5" style="margin-left: calc(-50vw + 50%); margin-right: calc(-50vw + 50%); width: 100vw;">
+        <div class="lesson-hero-glow position-absolute" style="background: @GetCategoryColor(Module); opacity: 0.12; filter: blur(100px);"></div>
+        <div class="position-relative py-5">
+            <div class="hero-content" style="max-width: 900px; margin: 0 auto; padding: 0 2rem;">
+                <div>
+
+                    <!-- Category Badge & Meta -->
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <span class="lesson-cat-badge d-inline-flex align-items-center gap-2" style="background: @GetCategoryBg(Module); color: @GetCategoryColor(Module); border: 1px solid @GetCategoryBorder(Module);">
+                            @GetCategoryIcon(Module) @GetCategoryName(Module)
+                        </span>
+                    </div>
+
+                    <!-- Title -->
+                    <h1 class="display-4 fw-bold text-white mb-3" style="font-family: var(--font-display); line-height: 1.15;">@activeLesson.Title</h1>
+
+                    <!-- Progress Bar -->
+                    <div class="lesson-progress mt-4">
+                        <div class="d-flex justify-content-between text-white-50 small mb-1">
+                            <span>Lesson @CurrentSequenceIndex of @TotalLessons</span>
+                            <span>@ProgressPercent%</span>
+                        </div>
+                        <div class="progress" style="height: 6px; background: var(--surface-darker); border-radius: 3px;">
+                            <div class="progress-bar" role="progressbar" style="width: @ProgressPercent%; background: @GetCategoryColor(Module); border-radius: 3px; transition: width 0.5s ease;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="max-width: 900px; margin: 0 auto; padding: 0 2rem 4rem 2rem; width: 100%;">
+        <!-- Main Content -->
+                <!-- Callout Boxes -->
+                @if (!string.IsNullOrEmpty(activeLesson.Goal))
+                {
+                    <div class="lesson-callout rounded-4 p-4 mb-4 position-relative overflow-hidden" style="border-left: 4px solid var(--primary-accent);">
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="callout-icon rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: rgba(59,130,246,0.1); color: var(--primary-accent);">
+                                <span style="font-size: 1.4rem;">🎯</span>
+                            </div>
+                            <div>
+                                <h4 class="h6 fw-bold text-white mb-2" style="font-family: var(--font-display);">Goal</h4>
+                                <p class="text-white-50 mb-0" style="line-height: 1.6;">@activeLesson.Goal</p>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(activeLesson.Prerequisites))
+                {
+                    <div class="lesson-callout rounded-4 p-4 mb-4 position-relative overflow-hidden" style="border-left: 4px solid var(--text-dark);">
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="callout-icon rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: rgba(100,116,139,0.1); color: var(--text-dark);">
+                                <span style="font-size: 1.4rem;">📋</span>
+                            </div>
+                            <div>
+                                <h4 class="h6 fw-bold text-white mb-2" style="font-family: var(--font-display);">Prerequisites</h4>
+                                <p class="text-white-50 mb-0" style="line-height: 1.6;">@activeLesson.Prerequisites</p>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(activeLesson.WhyMatters))
+                {
+                    <div class="lesson-callout rounded-4 p-4 mb-4 position-relative overflow-hidden" style="border-left: 4px solid #8B5CF6;">
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="callout-icon rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: rgba(139,92,246,0.1); color: #8B5CF6;">
+                                <span style="font-size: 1.4rem;">💡</span>
+                            </div>
+                            <div>
+                                <h4 class="h6 fw-bold text-white mb-2" style="font-family: var(--font-display);">Why This Matters</h4>
+                                <p class="text-white-50 mb-0" style="line-height: 1.6;">@activeLesson.WhyMatters</p>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <!-- Lesson Content -->
+                <div class="lesson-content text-white-50 mb-5" style="line-height: 1.8; font-size: 1.05rem;">
+                    @((MarkupString)activeLesson.Guide)
+                </div>
+
+                <!-- Interactive Playgrounds -->
+                @if (ShowGitPlayground)
+                {
+                    <div id="playground" class="my-5">
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <span style="font-size: 1.2rem;">🎮</span>
+                            <h3 class="h5 fw-bold text-white mb-0" style="font-family: var(--font-display);">Interactive Playground</h3>
+                        </div>
+                        <GitPlayground />
+                    </div>
+                }
+                @if (ShowGhaPlayground)
+                {
+                    <div id="playground" class="my-5">
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <span style="font-size: 1.2rem;">🎮</span>
+                            <h3 class="h5 fw-bold text-white mb-0" style="font-family: var(--font-display);">Interactive Playground</h3>
+                        </div>
+                        <GhaPlayground />
+                    </div>
+                }
+                @if (ShowDockerPlayground)
+                {
+                    <div id="playground" class="my-5">
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <span style="font-size: 1.2rem;">🎮</span>
+                            <h3 class="h5 fw-bold text-white mb-0" style="font-family: var(--font-display);">Interactive Playground</h3>
+                        </div>
+                        <DockerPlayground />
+                    </div>
+                }
+                @if (ShowK8sPlayground)
+                {
+                    <div id="playground" class="my-5">
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <span style="font-size: 1.2rem;">🎮</span>
+                            <h3 class="h5 fw-bold text-white mb-0" style="font-family: var(--font-display);">Interactive Playground</h3>
+                        </div>
+                        <K8sPlayground />
+                    </div>
+                }
+
+                <!-- Terminal Commands -->
+                @if (activeLesson.Commands != null && activeLesson.Commands.Any())
+                {
+                    <div id="commands" class="my-5">
+                        <div class="d-flex align-items-center gap-2 mb-4">
+                            <span style="font-size: 1.2rem;">⌨️</span>
+                            <h3 class="h5 fw-bold text-white mb-0" style="font-family: var(--font-display);">Terminal Commands</h3>
+                        </div>
+                        @foreach (var cmd in activeLesson.Commands)
+                        {
+                            <div class="lesson-command rounded-4 mb-4 overflow-hidden border">
+                                <div class="command-header d-flex justify-content-between align-items-center px-4 py-3">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="terminal-dot"></span>
+                                        <span class="terminal-dot yellow"></span>
+                                        <span class="terminal-dot green"></span>
+                                        <span class="command-label small fw-semibold ms-2">Terminal</span>
+                                    </div>
+                                    <button class="copy-btn-article btn btn-sm d-flex align-items-center gap-2" @onclick="() => CopyCommand(cmd.Code)">
+                                        <span>@(copiedCode == cmd.Code ? "✅ Copied!" : "📋 Copy")</span>
+                                    </button>
+                                </div>
+                                <div class="command-body p-4 position-relative" style="background: #0d1117;">
+                                    <pre class="m-0"><code style="font-family: var(--font-mono); color: #a5d6ff; font-size: 0.9rem; line-height: 1.6;">@cmd.Code</code></pre>
+                                </div>
+                                @if (!string.IsNullOrEmpty(cmd.Explanation))
+                                {
+                                    <div class="command-footer px-4 py-3 border-top" style="background: rgba(255,255,255,0.02);">
+                                        <p class="text-white small mb-0" style="line-height: 1.6;">
+                                            <span style="color: var(--primary-accent);">ℹ️</span> @cmd.Explanation
+                                        </p>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+
+                <!-- Common Pitfalls -->
+                @if (activeLesson.Errors != null && activeLesson.Errors.Any())
+                {
+                    <div id="errors" class="my-5">
+                        <div class="d-flex align-items-center gap-2 mb-4">
+                            <span style="font-size: 1.2rem;">🚨</span>
+                            <h3 class="h5 fw-bold text-white mb-0" style="font-family: var(--font-display);">Common Pitfalls</h3>
+                        </div>
+                        <div class="d-flex flex-column gap-3">
+                            @foreach (var err in activeLesson.Errors)
+                            {
+                                <div class="lesson-error-card rounded-4 overflow-hidden border">
+                                    <div class="error-header d-flex align-items-center gap-3 px-4 py-3">
+                                        <div class="error-icon rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; background: rgba(239,68,68,0.15); color: #EF4444; font-size: 0.9rem;">!</div>
+                                        <span class="fw-semibold text-danger">@err.Title</span>
+                                    </div>
+                                    <div class="error-body px-4 py-3">
+                                        <div class="d-flex align-items-start gap-2">
+                                            <span style="color: var(--success); font-size: 1.1rem;">✅</span>
+                                            <p class="text-white small mb-0" style="line-height: 1.6;">@err.Solution</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <!-- Summary Section -->
+                @if (!string.IsNullOrEmpty(activeLesson.Summary))
+                {
+                    <div id="summary" class="my-5">
+                        <div class="d-flex align-items-center gap-2 mb-4">
+                            <span style="font-size: 1.2rem;">✨</span>
+                            <h3 class="h5 fw-bold text-white mb-0" style="font-family: var(--font-display);">Summary</h3>
+                        </div>
+                        <div class="lesson-summary rounded-4 p-4 position-relative overflow-hidden" style="border-left: 4px solid var(--success); background: linear-gradient(135deg, var(--surface-color), rgba(34,197,94,0.03));">
+                            <div class="d-flex align-items-start gap-3">
+                                <div class="summary-icon rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; background: rgba(34,197,94,0.1); color: var(--success);">
+                                    <span style="font-size: 1.4rem;">🎓</span>
+                                </div>
+                                <p class="text-white mb-0" style="line-height: 1.7;">@activeLesson.Summary</p>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <!-- Lesson Navigation Footer -->
+                <div class="lesson-nav-v2 d-flex flex-wrap justify-content-between align-items-center gap-3 mt-5 pt-4">
+                    @if (HasPreviousLesson)
+                    {
+                        <button class="nav-btn-prev btn d-flex align-items-center gap-2" @onclick='() => NavigateTo($"lesson/{PreviousLesson.Module}/{PreviousLesson.Slug}")'>
+                            <span>←</span>
+                            <div class="text-start">
+                                <div class="nav-title text-white fw-semibold" style="font-size: 0.85rem;">@PreviousLesson.Title</div>
+                            </div>
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="nav-btn-prev btn d-flex align-items-center gap-2" @onclick='() => NavigateTo("")'>
+                            <span>←</span>
+                            <div class="text-start">
+                                <div class="nav-title text-white fw-semibold" style="font-size: 0.85rem;">Home</div>
+                            </div>
+                        </button>
+                    }
+
+                    @if (HasNextLesson)
+                    {
+                        <button class="nav-btn-next btn d-flex align-items-center gap-2" @onclick='() => NavigateTo($"lesson/{NextLesson.Module}/{NextLesson.Slug}")'>
+                            <div class="text-end">
+                                <div class="nav-title text-white fw-semibold" style="font-size: 0.85rem;">@NextLesson.Title</div>
+                            </div>
+                            <span>→</span>
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="nav-btn-next btn d-flex align-items-center gap-2" @onclick='() => NavigateTo("troubleshoot")'>
+                            <div class="text-end">
+                                <div class="nav-label text-muted" style="font-size: 0.7rem;">Next</div>
+                                <div class="nav-title text-white fw-semibold" style="font-size: 0.85rem;">Troubleshoot</div>
+                            </div>
+                            <span>→</span>
+                        </button>
+                    }
+                </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string Module { get; set; } = "";
+
+    [Parameter]
+    public string Slug { get; set; } = "";
+
+    private Category? Category;
+    private LessonModel? activeLesson;
+    private bool isLoading = true;
+    private string? error;
+    private string? copiedCode;
+
+    private int EstimatedTime => activeLesson != null ? Math.Max(3, (activeLesson.Guide.Length / 180) + 1) : 5;
+    private int TotalLessons => LessonSequence.Length;
+    private int ProgressPercent => (int)((CurrentSequenceIndex + 1) / (double)TotalLessons * 100);
+
+    private bool ShowGitPlayground => string.Equals(Module, "git", StringComparison.OrdinalIgnoreCase) && string.Equals(Slug, "git-commit", StringComparison.OrdinalIgnoreCase);
+    private bool ShowGhaPlayground => string.Equals(Module, "gha", StringComparison.OrdinalIgnoreCase) && (string.Equals(Slug, "gha-workflows", StringComparison.OrdinalIgnoreCase) || string.Equals(Slug, "gha-pipeline", StringComparison.OrdinalIgnoreCase));
+    private bool ShowDockerPlayground => string.Equals(Module, "docker", StringComparison.OrdinalIgnoreCase) && string.Equals(Slug, "docker-dockerfile", StringComparison.OrdinalIgnoreCase);
+    private bool ShowK8sPlayground => string.Equals(Module, "k8s", StringComparison.OrdinalIgnoreCase) && string.Equals(Slug, "k8s-scaling", StringComparison.OrdinalIgnoreCase);
+
+    private static readonly (string Module, string Slug, string Title)[] LessonSequence = new[]
+    {
+        ("git", "git-intro", "What is Version Control & Installing Git"),
+        ("git", "git-commit", "Staging Area & Committing Changes"),
+        ("git", "git-branches", "Branching & Merging Basics"),
+        ("gha", "gha-intro", "What is CI/CD & GitHub Actions?"),
+        ("gha", "gha-workflows", "Workflows, Events & Runners"),
+        ("gha", "gha-pipeline", "Building a Build-and-Test Pipeline"),
+        ("docker", "docker-intro", "Containerization Basics & Setup"),
+        ("docker", "docker-dockerfile", "Writing a Dockerfile"),
+        ("docker", "docker-cache", "Optimization & Port Mapping"),
+        ("k8s", "k8s-intro", "Container Orchestration & K8s Architecture"),
+        ("k8s", "k8s-pods", "Pods, Deployments & Services"),
+        ("k8s", "k8s-scaling", "Scaling & Self-Healing")
+    };
+
+    private int CurrentSequenceIndex => LessonSequence
+        .Select((item, index) => new { item, index })
+        .FirstOrDefault(x => string.Equals(x.item.Module, Module, StringComparison.OrdinalIgnoreCase) &&
+                             string.Equals(x.item.Slug, Slug, StringComparison.OrdinalIgnoreCase))
+        ?.index ?? -1;
+
+    private bool HasPreviousLesson => CurrentSequenceIndex > 0;
+    private bool HasNextLesson => CurrentSequenceIndex >= 0 && CurrentSequenceIndex < LessonSequence.Length - 1;
+
+    private (string Module, string Slug, string Title) PreviousLesson =>
+        HasPreviousLesson ? LessonSequence[CurrentSequenceIndex - 1] : default;
+
+    private (string Module, string Slug, string Title) NextLesson =>
+        HasNextLesson ? LessonSequence[CurrentSequenceIndex + 1] : default;
+
+    // Category theming
+    private Dictionary<string, CategoryTheme> CategoryThemes = new()
+    {
+        ["git"] = new("#F05032", "rgba(240, 80, 50, 0.12)", "rgba(240, 80, 50, 0.35)", "🌿", "Git"),
+        ["docker"] = new("#0db7ed", "rgba(13, 183, 237, 0.12)", "rgba(13, 183, 237, 0.35)", "🐳", "Docker"),
+        ["k8s"] = new("#326ce5", "rgba(50, 108, 229, 0.12)", "rgba(50, 108, 229, 0.35)", "☸️", "Kubernetes"),
+        ["gha"] = new("#A78BFA", "rgba(167, 139, 250, 0.12)", "rgba(167, 139, 250, 0.35)", "⚡", "GitHub Actions"),
+    };
+
+    private string GetCategoryColor(string module) =>
+        CategoryThemes.TryGetValue(module.ToLower(), out var theme) ? theme.Color : "#94A3B8";
+
+    private string GetCategoryBg(string module) =>
+        CategoryThemes.TryGetValue(module.ToLower(), out var theme) ? theme.Bg : "rgba(148,163,184,0.12)";
+
+    private string GetCategoryBorder(string module) =>
+        CategoryThemes.TryGetValue(module.ToLower(), out var theme) ? theme.Border : "rgba(148,163,184,0.35)";
+
+    private string GetCategoryIcon(string module) =>
+        CategoryThemes.TryGetValue(module.ToLower(), out var theme) ? theme.Icon : "🔧";
+
+    private string GetCategoryName(string module) =>
+        CategoryThemes.TryGetValue(module.ToLower(), out var theme) ? theme.Name : module;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        isLoading = true;
+        error = null;
+        copiedCode = null;
+        StateHasChanged();
+
+        try
+        {
+            var filename = Module.ToLower() switch
+            {
+                "git" => "git.json",
+                "gha" => "github-actions.json",
+                "docker" => "docker.json",
+                "k8s" => "k8s.json",
+                _ => null
+            };
+
+            if (filename == null)
+            {
+                error = $"Module '{Module}' not found.";
+                return;
+            }
+
+            Category = await Http.GetFromJsonAsync<Category>($"sample-data/{filename}");
+            if (Category == null)
+            {
+                error = "Failed to load category data.";
+                return;
+            }
+
+            activeLesson = Category.Modules
+                .SelectMany(m => m.Lessons)
+                .FirstOrDefault(l => string.Equals(l.Id, Slug, StringComparison.OrdinalIgnoreCase));
+
+            if (activeLesson == null)
+            {
+                error = $"Lesson '{Slug}' not found in module '{Module}'.";
+            }
+        }
+        catch (Exception ex)
+        {
+            error = $"Error loading lesson: {ex.Message}";
+            Console.WriteLine(ex);
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void NavigateTo(string url) => NavigationManager.NavigateTo(url);
+
+    private async Task CopyCommand(string code)
+    {
+        await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", code);
+        copiedCode = code;
+        StateHasChanged();
+        await Task.Delay(2000);
+        if (copiedCode == code)
+        {
+            copiedCode = null;
+            StateHasChanged();
+        }
+    }
+
+    public record CategoryTheme(string Color, string Bg, string Border, string Icon, string Name);
+}

@@ -1,0 +1,89 @@
+{
+  "id": "k8s",
+  "title": "Kubernetes",
+  "subtitle": "Container Orchestration",
+  "description": "Orchestrate, automate, and scale container deployments across clusters of servers.",
+  "badge": "Orchestration",
+  "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-6 h-6\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9\" /></svg>",
+  "modules": [
+    {
+      "title": "Module 1: Container Orchestration",
+      "lessons": [
+        {
+          "id": "k8s-intro",
+          "title": "Container Orchestration & K8s Architecture",
+          "goal": "Understand why container orchestration is necessary and learn the architecture of Kubernetes.",
+          "prerequisites": "A solid understanding of Docker containers and images.",
+          "whyMatters": "Running a single container on a single virtual machine is easy. But what happens when that VM goes down? Or when traffic spikes and one container gets overloaded? Managing hundreds of containers manually across multiple physical servers is impossible. Kubernetes automates this.",
+          "guide": "<h3>What is Kubernetes?</h3><p>Kubernetes (often abbreviated as K8s) is an open-source platform that automates container deployment, scaling, and operations. Think of Docker as a musician, and Kubernetes as the orchestra conductor.</p><h3>Kubernetes Architecture</h3><ul><li><strong>Control Plane:</strong> The master brain of the cluster, responsible for scheduling containers, managing cluster state, and handling API queries.</li><li><strong>Worker Nodes:</strong> The physical or virtual machines that run your containers.</li><li><strong>Kubelet:</strong> An agent running on each worker node that ensures containers are running inside pods.</li></ul>",
+          "commands": [
+            {
+              "code": "kubectl cluster-info\nkubectl get nodes",
+              "explanation": "Queries the K8s API server to verify connection status and list all worker nodes participating in the active cluster."
+            }
+          ],
+          "errors": [
+            {
+              "title": "The connection to the server localhost:8080 was refused",
+              "solution": "This means your `kubectl` client cannot connect to a running Kubernetes cluster. Verify that Minikube, Docker Desktop K8s, or Kind is running, and that your context config is correct."
+            }
+          ],
+          "summary": "You now understand the role of Kubernetes and its master-worker cluster architecture.",
+          "nextLessonId": "k8s-pods"
+        },
+        {
+          "id": "k8s-pods",
+          "title": "Pods, Deployments & Services",
+          "goal": "Learn how Kubernetes groups containers and exposes them to network traffic.",
+          "prerequisites": "Understanding K8s architecture and basic YAML files.",
+          "whyMatters": "In Kubernetes, you never run a container directly. You run Pods. To manage groups of identical pods and expose them to the internet, you use Deployments and Services. Understanding these resources is key to deploying cloud-native applications.",
+          "guide": "<h3>Key Kubernetes Resources</h3><ul><li><strong>Pod:</strong> The smallest deployable unit in K8s, containing one or more tightly coupled containers sharing local storage and network.</li><li><strong>Deployment:</strong> Declares the desired state of pods, such as which image to run and how many replica copies should exist. It automatically handles rolling updates.</li><li><strong>Service:</strong> Exposes a set of Pods as a network service. Since Pods are ephemeral and get destroyed, Services provide a single, stable IP address and DNS name.</li></ul>",
+          "commands": [
+            {
+              "code": "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: my-app\nspec:\n  replicas: 3\n  selector:\n    matchLabels:\n      app: web\n  template:\n    metadata:\n      labels:\n        app: web\n    spec:\n      containers:\n      - name: web-container\n        image: my-web-app:latest\n        ports:\n        - containerPort: 3000",
+              "explanation": "A Deployment configuration. It launches 3 replica Pods running the 'my-web-app:latest' container listening internally on port 3000."
+            },
+            {
+              "code": "kubectl apply -f deployment.yaml\nkubectl get pods",
+              "explanation": "Submits the deployment template to the K8s API server and retrieves the active list of spinning-up Pods."
+            }
+          ],
+          "errors": [
+            {
+              "title": "ImagePullBackOff or ErrImagePull",
+              "solution": "Kubernetes cannot fetch the container image specified in the YAML. Verify the image name and tag are correct, and that the image has been pushed to a registry like Docker Hub or loaded locally (e.g. `minikube image load`)."
+            }
+          ],
+          "summary": "You deployed your first Pods and mapped out a Service layer to balance incoming network requests.",
+          "nextLessonId": "k8s-scaling"
+        },
+        {
+          "id": "k8s-scaling",
+          "title": "Scaling & Self-Healing",
+          "goal": "Observe Kubernetes auto-scaling pod counts and self-healing crashed containers.",
+          "prerequisites": "Creating and applying Deployments.",
+          "whyMatters": "Production environments are unpredictable. If a container crashes due to an out-of-memory error, or if a physical server hosting your container burns out, you need immediate remediation. K8s does this automatically, keeping your app online.",
+          "guide": "<h3>Scaling and Self-Healing Powers</h3><p><strong>Horizontal Scaling:</strong> Increasing or decreasing the number of pod replicas running in a deployment. You can do this manually or dynamically based on CPU/RAM usage.</p><p><strong>Self-Healing:</strong> The Kubelet agent monitors container states. If a container crashes, Kubernetes terminates it and spins up a new one. If a node fails, all its pods are rescheduled on healthy nodes.</p><p>Try the replica slider in the playground below to visualize this cluster scaling in real time.</p>",
+          "commands": [
+            {
+              "code": "kubectl scale deployment my-app --replicas=5",
+              "explanation": "Commands the Deployment controller to immediately scale the cluster capacity from 3 pods up to 5 pods."
+            },
+            {
+              "code": "kubectl delete pod <pod-name>",
+              "explanation": "Deletes a specific pod instance. Watch the deployment controller immediately spin up a new replacement pod to maintain the desired count."
+            }
+          ],
+          "errors": [
+            {
+              "title": "CrashLoopBackOff status",
+              "solution": "Your pod is starting, crashing, and restarting in a loop. Run `kubectl logs <pod-name>` or `kubectl describe pod <pod-name>` to view the application crash trace (often missing env vars or config files)."
+            }
+          ],
+          "summary": "You successfully demonstrated scaling replica counts and simulated self-healing pod terminations in a cluster environment.",
+          "nextLessonId": "git-intro"
+        }
+      ]
+    }
+  ]
+}

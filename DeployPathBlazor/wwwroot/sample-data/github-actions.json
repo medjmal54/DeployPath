@@ -1,0 +1,81 @@
+{
+  "id": "gha",
+  "title": "GitHub Actions",
+  "subtitle": "CI/CD & Automation",
+  "description": "Build CI/CD pipelines that test, lint, and deploy your code on every push.",
+  "badge": "Automation",
+  "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-6 h-6\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M13 10V3L4 14h7v7l9-11h-7z\" /></svg>",
+  "modules": [
+    {
+      "title": "Module 1: Automated Pipelines",
+      "lessons": [
+        {
+          "id": "gha-intro",
+          "title": "What is CI/CD & GitHub Actions?",
+          "goal": "Understand Continuous Integration, Continuous Delivery, and the role GitHub Actions plays.",
+          "prerequisites": "A basic understanding of Git repository commits and remote pushes.",
+          "whyMatters": "Without CI/CD, developers must build, run tests, and deploy their applications manually. Humans make mistakes—forgetting to run tests, omitting environment variables, or pushing incorrect assets. CI/CD automates this entire flow, validating every single commit before it hits production.",
+          "guide": "<h3>The Concepts of CI/CD</h3><p><strong>Continuous Integration (CI):</strong> The practice of automatically building and testing your application every time a developer merges changes into the main branch. This catches integration bugs early.</p><p><strong>Continuous Delivery/Deployment (CD):</strong> Pushing those successfully built and tested assets directly to production servers or hosting services without manual intervention.</p><p>GitHub Actions uses runner servers (hosted by GitHub or your own system) to execute commands defined in YAML files inside your repository's <code>.github/workflows/</code> directory.</p>",
+          "commands": [
+            {
+              "code": "mkdir -p .github/workflows\ntouch .github/workflows/deploy.yml",
+              "explanation": "Creates the standard directory structure where GitHub looks for automation scripts, and initializes a deploy workflow file."
+            }
+          ],
+          "errors": [
+            {
+              "title": "Workflow not appearing in GitHub 'Actions' tab",
+              "solution": "Verify that your YAML files are located precisely in the `.github/workflows/` directory. Spelled names matter: `.github` (singular) and `workflows` (plural). Ensure your files end with `.yml` or `.yaml`."
+            }
+          ],
+          "summary": "You now understand how CI/CD automates builds, tests, and deployments, and where GitHub Actions workflow files live.",
+          "nextLessonId": "gha-workflows"
+        },
+        {
+          "id": "gha-workflows",
+          "title": "Workflows, Events & Runners",
+          "goal": "Learn the YAML structure of a workflow and how to trigger jobs on specific repository events.",
+          "prerequisites": "Understanding GitHub Actions directories and basic YAML syntax.",
+          "whyMatters": "To automate effectively, you must control *when* your pipelines run. Triggering full tests on every commit is useful, but deploying should only happen when pushing to a protected branch like `main`. Defining events, jobs, and runners gives you this control.",
+          "guide": "<h3>Deconstructing a Workflow YAML</h3><p>A workflow is composed of three core components:</p><ul><li><strong>Events (on):</strong> The triggers that start the workflow (e.g. <code>push</code>, <code>pull_request</code>, or scheduled cron jobs).</li><li><strong>Jobs:</strong> A set of steps that execute on the same runner. Jobs run in parallel by default but can be configured to depend on each other.</li><li><strong>Runners (runs-on):</strong> The environment/virtual machine that runs the job (e.g. <code>ubuntu-latest</code>, <code>windows-latest</code>, or <code>macos-latest</code>).</li></ul><p>An interactive simulation of this execution is available below. Click 'Run Workflow' to see how the runner executes each job step.</p>",
+          "commands": [
+            {
+              "code": "name: Learn Workflows\non:\n  push:\n    branches: [ main ]\njobs:\n  build:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo \"Pipeline started!\"",
+              "explanation": "A basic workflow template. It triggers when a push is made to the 'main' branch, runs on a fresh Ubuntu virtual machine, and prints a success statement."
+            }
+          ],
+          "errors": [
+            {
+              "title": "YAML Syntax Error: mapping values are not allowed here",
+              "solution": "YAML relies strictly on spacing and indentations, not tabs. Ensure you are using spaces, that colons have a space after them, and that list hyphens are correctly aligned."
+            }
+          ],
+          "summary": "You learned how to write triggers and define virtual environments where your automated steps will execute.",
+          "nextLessonId": "gha-pipeline"
+        },
+        {
+          "id": "gha-pipeline",
+          "title": "Building a Build-and-Test Pipeline",
+          "goal": "Build a workflow that checks out your code, installs dependencies, runs tests, and compiles the app.",
+          "prerequisites": "Understanding workflows, jobs, and triggers.",
+          "whyMatters": "Running compilation tests in isolation ensures that code compiles successfully in a clean environment, eliminating the 'works on my machine' issue. It guarantees that any broken code fails the build before affecting production.",
+          "guide": "<h3>Pre-made Actions & Tasks</h3><p>Instead of writing commands for everything, you can reuse community actions using the <code>uses</code> key. Two of the most important actions are:</p><ul><li><code>actions/checkout@v4</code>: Clones your repository code into the runner's workspace directory.</li><li><code>actions/setup-node@v4</code>: Installs Node.js and npm on the runner.</li></ul><p>Once set up, you use the <code>run</code> command to install packages, run tests, and build assets.</p>",
+          "commands": [
+            {
+              "code": "name: Node Build & Test\non: [push]\njobs:\n  test-job:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-node@v4\n        with:\n          node-version: 18\n      - run: npm ci\n      - run: npm test\n      - run: npm run build",
+              "explanation": "Full workflow. It checks out the code, configures Node.js 18, runs clean install (npm ci) for packages, executes tests, and builds the production bundles."
+            }
+          ],
+          "errors": [
+            {
+              "title": "Process completed with exit code 1 / Test failure",
+              "solution": "GitHub Actions treats any step returning a non-zero exit code as a failure, halting subsequent steps. Read the console outputs of the failing step to locate syntax errors, missing dependencies, or failing unit test assertions."
+            }
+          ],
+          "summary": "You built a complete CI verification pipeline that automatically validates your project codebase on every commit.",
+          "nextLessonId": "docker-intro"
+        }
+      ]
+    }
+  ]
+}

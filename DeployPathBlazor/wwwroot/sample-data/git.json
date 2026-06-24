@@ -1,0 +1,123 @@
+{
+      "id": "git",
+      "title": "Git Version Control",
+      "subtitle": "The Foundation",
+      "description": "Learn how to track code changes, collaborate with other developers, and branch without breaking code.",
+      "badge": "Local & Collaboration",
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-6 h-6\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"> \n <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 6V4m0 2a2 2 0 100 3m0-3a2 2 0 110 3m-3 9a2 2 0 100-4 2 2 0 000 4zm0 0h6a2 2 0 002-2v-3a2 2 0 00-2-2h-3m-6 3V9\" /> \n </svg>",
+      "modules": [
+        {
+          "title": "Module 1: Version Control Basics",
+          "lessons": [
+            {
+              "id": "git-intro",
+              "title": "What is Version Control & Installing Git",
+              "goal": "Understand distributed version control and successfully set up Git on your local machine.",
+              "prerequisites": "A basic understanding of how to navigate directories using a command line shell.",
+              "whyMatters": "Without Git, tracking changes requires copy-pasting folders (e.g. 'project-final-v2'). In a team, multiple people editing the same file would constantly overwrite each other. Git records snapshots of your files, logs why changes were made, and merges team code seamlessly.",
+              "guide": "<h3>Understanding Distributed Git</h3> \n <p>In Git, version control is <strong>distributed</strong>. This means every developer has a complete copy of the project's entire history on their local machine, rather than relying on a central server. If the server goes down, any developer's local repository can be used to restore it.</p> \n <p>To start, download Git from <a href=\"https://git-scm.com/downloads\" target=\"_blank\" rel=\"noopener\">git-scm.com</a>. Once installed, configure your developer identity globally. This name and email will be stamped onto every commit you make.</p>",
+              "commands": [
+                {
+                  "code": "git --version",
+                  "explanation": "Verifies that Git is properly installed and outputs the installed version."
+                },
+                {
+                  "code": "git config --global user.name \"Alex Developer\"\ngit config --global user.email \"alex@example.com\"",
+                  "explanation": "Configures your global user identity. All commits in this machine will use these credentials."
+                },
+                {
+                  "code": "git config --list",
+                  "explanation": "Lists all configuration settings Git can find, allowing you to verify your setup."
+                }
+              ],
+              "errors": [
+                {
+                  "title": "Command 'git' not found / Not recognized",
+                  "solution": "Ensure Git is added to your environment variables (PATH). On Windows, reinstall Git and verify 'Add to PATH' is checked. After installation, restart your terminal application completely."
+                }
+              ],
+              "summary": "You have installed Git and configured your developer identity, laying the foundation to track and save code history.",
+              "nextLessonId": "git-commit"
+            },
+            {
+              "id": "git-commit",
+              "title": "Staging Area & Committing Changes",
+              "goal": "Initialize a local repository, stage modified files, and make your first commit.",
+              "prerequisites": "Git installed and configured with a name and email.",
+              "whyMatters": "Committing is saving the progress of your application. Git's staging area acts as a draft space where you choose exactly which lines or files go into the next commit, keeping code history organized and readable.",
+              "guide": "<h3>The Three States of Git</h3> \n  <p>Git separates your workflow into three distinct stages:</p> \n <ul> \n  <li><strong>Working Directory:</strong> The actual files on your disk. Changes are untracked or modified but not saved.</li> \n <li><strong>Staging Area (Index):</strong> A staging floor where you prepare files for the next snapshot.</li> \n <li><strong>Local Repository (.git):</strong> The permanent database storing all committed snapshots.</li> \n </ul> \n <p>An interactive visualization of this flow is displayed below. Use the playground to see how files transition between states.</p> \n",
+              "interactiveId": "git-commit-flow",
+              "commands": [
+                {
+                  "code": "git init",
+                  "explanation": "Initializes a blank Git repository in the current folder, creating a hidden `.git` directory."
+                },
+                {
+                  "code": "git status",
+                  "explanation": "Shows which files have been modified, staged, or are currently untracked by Git."
+                },
+                {
+                  "code": "git add index.html",
+                  "explanation": "Adds index.html to the Staging Area, marking it for inclusion in the next commit."
+                },
+                {
+                  "code": "git add .",
+                  "explanation": "Stages all new, modified, and deleted files in the current directory recursively."
+                },
+                {
+                  "code": "git commit -m \"feat: design hero layout\"",
+                  "explanation": "Saves the staged snapshot permanently. The '-m' flag attaches a clear description explaining the change."
+                }
+              ],
+              "errors": [
+                {
+                  "title": "nothing added to commit but untracked files present",
+                  "solution": "You ran `git commit` without staging files first. Run `git add <filename>` or `git add .` to move changes to the staging area before committing."
+                }
+              ],
+              "summary": "You learned how to initialize a repository, transition files into the staging area, and record version snapshots.",
+              "nextLessonId": "git-branches"
+            },
+            {
+              "id": "git-branches",
+              "title": "Branching & Merging Basics",
+              "goal": "Create isolated branches to build features, switch branches, and merge code.",
+              "prerequisites": "Understanding how to make commits on the main branch.",
+              "whyMatters": "If multiple developers edited the same production code simultaneously, the application would break constantly. Branches allow you to isolate your work in progress. Once complete, you merge it back into the main codebase.",
+              "guide": "<h3>What is a Branch?</h3> \n <p>A branch in Git is simply a lightweight, movable pointer to a specific commit. The default branch name is usually <code>main</code> or <code>master</code>. Creating a new branch creates a new pointer, letting you code independently.</p> \n <p>When you merge branches, Git automatically combines the histories. If conflicts occur (changes on the same line), Git pauses and asks you to choose which code to keep.</p>",
+              "interactiveId": "git-branch-flow",
+              "commands": [
+                {
+                  "code": "git branch",
+                  "explanation": "Lists all local branches. The branch with the asterisk (*) is your active branch."
+                },
+                {
+                  "code": "git branch feature-login",
+                  "explanation": "Creates a new branch named 'feature-login' pointing to your current commit."
+                },
+                {
+                  "code": "git checkout feature-login",
+                  "explanation": "Switches your working directory to the 'feature-login' branch. (Alternative: 'git switch feature-login')."
+                },
+                {
+                  "code": "git checkout -b feature-payment",
+                  "explanation": "Shortcut command. Creates a new branch named 'feature-payment' and immediately switches to it."
+                },
+                {
+                  "code": "git merge feature-login",
+                  "explanation": "Merges changes from 'feature-login' into the branch you are currently on. Run this from your main branch."
+                }
+              ],
+              "errors": [
+                {
+                  "title": "Automatic merge failed; fix conflicts",
+                  "solution": "This happens when two branches modified the same line of the same file. Open the conflicting files in your editor, look for `<<<<<<< HEAD` markers, edit the code to your liking, remove the markers, run `git add <file>`, and then `git commit` to finish."
+                }
+              ],
+              "summary": "You can now isolate features on separate branches, navigate branches, and merge completed work.",
+              "nextLessonId": "gha-intro"
+            }
+          ]
+        }
+      ]
+    }

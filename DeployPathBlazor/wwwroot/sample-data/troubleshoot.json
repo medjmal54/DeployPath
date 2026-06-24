@@ -1,0 +1,56 @@
+[
+  {
+    "slug": "git-push-rejected",
+    "category": "Git",
+    "title": "Git Push Rejected",
+    "description": "Remote rejected your push. Usually a non-fast-forward or protected branch issue.",
+    "guide": "This error occurs when you try to push your commits to a remote repository, but the remote branch contains commits that you do not have locally. Git prevents you from pushing to avoid overwriting work that has been pushed by others.",
+    "command": "git push origin main",
+    "solution": "<h3>How to resolve it:</h3><p><strong>1. Fetch and Merge Remote Changes:</strong></p><p>Run a <code>git pull</code> to fetch and merge the changes from the remote branch into your local branch:</p><pre><code>git pull origin main</code></pre><p><strong>2. Resolve any Conflicts:</strong></p><p>If there are conflicts, Git will prompt you to resolve them. Open the affected files, make the fixes, stage the changes, and commit them.</p><p><strong>3. Push Again:</strong></p><p>Once your local branch is up-to-date with the remote branch, you can push successfully:</p><pre><code>git push origin main</code></pre><p><em>Warning: Do NOT use the <code>--force</code> flag unless you are absolutely sure you want to overwrite and destroy the remote commit history.</em>"
+  },
+  {
+    "slug": "auth-failed",
+    "category": "Auth",
+    "title": "Authentication Failed",
+    "description": "SSH key, PAT token, or credential helper misconfiguration.",
+    "guide": "This occurs when GitHub or your Git host cannot verify your credentials. Git hosts have deprecated password authentication, so you must use SSH keys or Personal Access Tokens (PAT) to authorize operations.",
+    "command": "ssh -T git@github.com",
+    "solution": "<h3>How to resolve it:</h3><p><strong>Option A: Using SSH Keys</strong></p><ol><li>Verify you have an SSH key generated: <code>ls -al ~/.ssh</code></li><li>If not, generate one: <code>ssh-keygen -t ed25519 -C \"your_email@example.com\"</code></li><li>Start SSH agent: <code>eval \"$(ssh-agent -s)\"</code> and add key: <code>ssh-add ~/.ssh/id_ed25519</code></li><li>Copy the public key content: <code>cat ~/.ssh/id_ed25519.pub</code> and paste it into GitHub Settings > SSH and GPG Keys.</li></ol><p><strong>Option B: Using Personal Access Tokens (PAT)</strong></p><ol><li>Go to GitHub Settings > Developer Settings > Personal Access Tokens > Tokens (classic).</li><li>Generate a new token with <code>repo</code> scope. Copy the token!</li><li>When Git prompts for your password in the terminal, paste this token instead of your password.</li></ol>"
+  },
+  {
+    "slug": "merge-conflict",
+    "category": "Git",
+    "title": "Merge Conflicts",
+    "description": "Two branches modified the same lines. Resolve and commit.",
+    "guide": "A merge conflict occurs when you try to merge two branches that have different modifications to the exact same lines in a file, or if one branch deleted a file that the other branch modified. Git stops the merge and asks you to resolve the conflict manually.",
+    "command": "git status",
+    "solution": "<h3>How to resolve it:</h3><p><strong>1. Identify Conflicting Files:</strong></p><p>Run <code>git status</code> to see which files are conflicting (marked as <em>both modified</em>).</p><p><strong>2. Edit the Conflicting Files:</strong></p><p>Open the files in your code editor. Locate the conflict markers:</p><pre><code><<<<<<< HEAD\nYour local changes here\n=======\nTheir changes from the other branch\n>>>>>>> branch-name</code></pre><p>Decide which code to keep, delete all conflict markers (<code><<<<<<<</code>, <code>=======</code>, <code>>>>>>>></code>), and save the file.</p><p><strong>3. Stage and Commit:</strong></p><p>Mark the conflict as resolved by staging the file, and commit the merge:</p><pre><code>git add filename.js\ngit commit -m \"merge: resolved conflicts with branch-name\"</code></pre>"
+  },
+  {
+    "slug": "docker-not-starting",
+    "category": "Docker",
+    "title": "Container Crash (Docker Not Starting)",
+    "description": "Exit code non-zero, port conflicts, or missing env vars.",
+    "guide": "This issue is characterized by a container starting and then immediately stopping or exiting with a non-zero code. It typically points to a configuration error, a missing file, or a port conflict on the host machine.",
+    "command": "docker logs <container-id>",
+    "solution": "<h3>How to resolve it:</h3><p><strong>1. Read the Container Logs:</strong></p><p>This is the most critical step. The logs contain the error output from your application:</p><pre><code>docker logs <container-name-or-id></code></pre><p><strong>2. Fix Common Causes:</strong></p><ul><li><strong>Port Conflict:</strong> If the logs complain about address allocation, choose a different host port: <code>docker run -p 8081:80 my-image</code>.</li><li><strong>Missing Environment Variables:</strong> Use the <code>-e</code> flag to inject variables: <code>docker run -e DATABASE_URL=\"...\" my-image</code>.</li><li><strong>Incorrect CMD Instruction:</strong> Ensure your entrypoint script exists and has executable permissions.</li></ul>"
+  },
+  {
+    "slug": "k8s-pod-errors",
+    "category": "Kubernetes",
+    "title": "K8s Pod Errors (CrashLoopBackOff)",
+    "description": "CrashLoopBackOff, ImagePullBackOff, or OOMKilled.",
+    "guide": "A Pod entering a failure state (like CrashLoopBackOff, ImagePullBackOff, or OOMKilled) means Kubernetes tried to start your container, but failed repeatedly. Finding the status details is the key to solving cluster deployment issues.",
+    "command": "kubectl describe pod <pod-name>",
+    "solution": "<h3>How to resolve common statuses:</h3><p><strong>1. ImagePullBackOff / ErrImagePull:</strong></p><p>Kubernetes cannot download the container image. Verify the image tag is spelled correctly and that the image has been pushed to a public registry (or that you configured registry credentials).</p><p><strong>2. CrashLoopBackOff:</strong></p><p>The container starts, but crashes immediately. Check the application logs inside the pod:</p><pre><code>kubectl logs <pod-name></code></pre><p><strong>3. OOMKilled (Out of Memory):</strong></p><p>Your container was terminated because it exceeded its allocated memory limits. Increase the memory limit in your deployment YAML under <code>resources.limits.memory</code>.</p>"
+  },
+  {
+    "slug": "workflow-fails",
+    "category": "CI/CD",
+    "title": "GitHub Actions Workflow Failure",
+    "description": "GitHub Actions job failing at build, test, or deploy step.",
+    "guide": "When a step in your GitHub Actions workflow fails, the runner reports a non-zero exit code. This halts the pipeline execution. Common causes include failed unit tests, syntax/linting errors, or missing secrets credentials.",
+    "command": "echo \"Check GitHub actions tab\"",
+    "solution": "<h3>How to resolve it:</h3><p><strong>1. Inspect the Action logs:</strong></p><p>Go to your GitHub repository > <strong>Actions</strong> tab. Click on the failing workflow run, then click on the failing job to expand the step console logs.</p><p><strong>2. Common Resolutions:</strong></p><ul><li><strong>Missing Secrets:</strong> If your build depends on API tokens, define them in Repository Settings > Secrets and Variables > Actions, and reference them in your YAML: <code>env: API_KEY: ${{ secrets.API_KEY }}</code>.</li><li><strong>Failing Tests:</strong> Fix code bugs locally, ensure all unit tests pass locally, then commit and push.</li><li><strong>Node version mismatch:</strong> Ensure the runner Node.js version matches your local version using <code>actions/setup-node@v4</code>.</li></ul>"
+  }
+]

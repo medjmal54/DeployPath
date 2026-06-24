@@ -1,0 +1,41 @@
+﻿@inject NavigationManager NavigationManager
+
+<header class="fixed-top global-header">
+    <div class="container-fluid h-100">
+        <!-- Logo -->
+        <div class="row h-100 align-items-center g-0">
+            <div class="col-auto">
+                <div class="logo-container d-flex align-content-center gap-2" @onclick="NavigateToHome" style="cursor: pointer;">
+                    <div class="logo-text">Deploy<span>Path</span></div>
+                </div>
+            </div>
+            <!-- Search bar --->
+            <div class="col d-none d-md-block mx-5">
+                <div class="header-controls d-flex align-items-center flex-fill gap-5 mx-0 mx-lg-3">
+                    <div class="search-wrapper position-relative w-100" style="max-width: 400px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="search-icon position-absolute" style="left: 14px; top: 50%; transform: translateY(-50%);" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                        <input type="text" id="search-bar" class="search-input form-control ps-5" placeholder="Search troubleshooting guides (e.g. push rejected)...">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation links -->
+            <div class="col-auto d-none d-md-flex">
+                <nav class="nav-links d-flex align-items-center gap-3">
+                    <NavLink href="" class="nav-link" Match="NavLinkMatch.All">
+                        Home
+                    </NavLink>
+                    <NavLink href="troubleshoot" class="nav-link">
+                        Troubleshooting
+                    </NavLink>
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+
+@code{
+    private void NavigateToHome() => NavigationManager.NavigateTo("/");
+}
