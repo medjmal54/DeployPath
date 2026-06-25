@@ -16,14 +16,14 @@
         <div class="category-header mb-4 border-bottom pb-3 my-5">
             <span class="card-badge d-inline-block mb-2">@Category.Badge</span>
             <h2 class="h5 fw-bold text-white mb-1" style="font-family: var(--font-display);">@Category.Title</h2>
-            <p class="small text-muted mb-0" style="font-size: 0.8rem;">@Category.Subtitle</p>
+            <p class="small text-white-50 mb-0" style="font-size: 0.8rem;">@Category.Subtitle</p>
         </div>
 
         <nav class="modules-nav">
             @foreach (var mod in Category.Modules)
             {
                 <div class="module-group mb-4">
-                    <h3 class="module-title small fw-bold text-uppercase mb-2" style="font-size: 0.75rem; letter-spacing: 0.5px; font-family: var(--font-display); color: var(--text-dark);">@mod.Title</h3>
+                    <h3 class="module-title small fw-bold text-uppercase mb-2" style="font-size: 0.75rem; letter-spacing: 0.5px; font-family: var(--font-display); color: deeppink;">@mod.Title</h3>
                     <ul class="list-unstyled d-flex flex-column gap-1 m-0 p-0">
                         @foreach (var les in mod.Lessons)
                         {

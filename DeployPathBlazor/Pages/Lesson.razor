@@ -42,7 +42,7 @@ else
                     <!-- Category Badge & Meta -->
                     <div class="d-flex align-items-center gap-3 mb-3">
                         <span class="lesson-cat-badge d-inline-flex align-items-center gap-2" style="background: @GetCategoryBg(Module); color: @GetCategoryColor(Module); border: 1px solid @GetCategoryBorder(Module);">
-                            @GetCategoryIcon(Module) @GetCategoryName(Module)
+                            <img src="icons/@GetCategoryIcon(Module)" alt="@GetCategoryName(Module)" /> @GetCategoryName(Module)
                         </span>
                     </div>
 
@@ -344,10 +344,10 @@ else
     // Category theming
     private Dictionary<string, CategoryTheme> CategoryThemes = new()
     {
-        ["git"] = new("#F05032", "rgba(240, 80, 50, 0.12)", "rgba(240, 80, 50, 0.35)", "🌿", "Git"),
-        ["docker"] = new("#0db7ed", "rgba(13, 183, 237, 0.12)", "rgba(13, 183, 237, 0.35)", "🐳", "Docker"),
-        ["k8s"] = new("#326ce5", "rgba(50, 108, 229, 0.12)", "rgba(50, 108, 229, 0.35)", "☸️", "Kubernetes"),
-        ["gha"] = new("#A78BFA", "rgba(167, 139, 250, 0.12)", "rgba(167, 139, 250, 0.35)", "⚡", "GitHub Actions"),
+        ["git"] = new("#F05032", "rgba(240, 80, 50, 0.12)", "rgba(240, 80, 50, 0.35)", "Git.svg", "Git"),
+        ["docker"] = new("#0db7ed", "rgba(13, 183, 237, 0.12)", "rgba(13, 183, 237, 0.35)", "Docker.svg", "Docker"),
+        ["k8s"] = new("#326ce5", "rgba(50, 108, 229, 0.12)", "rgba(50, 108, 229, 0.35)", "Kubernetes.svg", "Kubernetes"),
+        ["gha"] = new("#A78BFA", "rgba(167, 139, 250, 0.12)", "rgba(167, 139, 250, 0.35)", "githubactions-svgrepo-com.svg", "GitHub Actions"),
     };
 
     private string GetCategoryColor(string module) =>
