@@ -1350,21 +1350,6 @@ body {
     background: radial-gradient(circle at center, rgba(59, 130, 246, 0.06), transparent 70%);
 }
 
-.troubleshoot-hero-icon {
-    font-size: 3rem;
-    animation: float 3s ease-in-out infinite;
-}
-
-@keyframes float {
-    0%, 100% {
-        transform: translateY(0);
-    }
-
-    50% {
-        transform: translateY(-10px);
-    }
-}
-
 .troubleshoot-search {
     background-color: var(--surface-darker) !important;
     border: 1px solid var(--border-color) !important;
