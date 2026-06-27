@@ -38,8 +38,10 @@ DeployPath/
 ---
 ## 📷 Screenshots
 <div>
-  <img src="" />
-  <img src="" />
+  <img src="screens/homepage.png" />
+  <img src="screens/langs.png" />
+  <img src="screens/troubleshoothub.png" />
+  <img src="screens/troubleArticles.png" />
 </div>
 
 ## 🚀 Getting Started
