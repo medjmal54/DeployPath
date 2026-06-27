@@ -37,11 +37,11 @@ DeployPath/
 ```
 ---
 ## 📷 Screenshots
-<div>
-  <img src="screens/homepage.png" />
-  <img src="screens/langs.png" />
-  <img src="screens/troubleshoothub.png" />
-  <img src="screens/troubleArticles.png" />
+<div style="display: flex;">
+  <img src="screens/homepage.png" style="height: 400px; width:600px;" />
+  <img src="screens/langs.png" style="height: 400px; width:600px;" />
+  <img src="screens/troubleshoothub.png" style="height: 400px; width:600px;" />
+  <img src="screens/troubleArticles.png" style="height: 400px; width:600px;" />
 </div>
 
 ## 🚀 Getting Started
