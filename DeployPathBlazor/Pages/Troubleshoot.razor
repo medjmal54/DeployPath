@@ -7,7 +7,7 @@
 
 <!-- Hero Search Section -->
 <div class="troubleshoot-hero text-center py-5 mb-5">
-    <div class="container" style="max-width: 700px;">
+    <div>
         <div class="troubleshoot-hero-icon mb-3">🔧</div>
         <h1 class="display-5 fw-bold mb-3" style="font-family: var(--font-display);">Troubleshooting Hub</h1>
         <p class="text-white-50 lead mb-4">Search symptoms, filter by stack, and fix errors fast.</p>
@@ -205,27 +205,6 @@
             "gh run view --log-failed",
             new[] { "github-actions", "ci", "workflow", "build" },
             "troubleshoot-article/workflow-fails"),
-        
-        new TroubleshootCard("docker-build-fail", "Docker", "Build Fails", "Medium",
-            "Dockerfile syntax error or missing base image.",
-            "Check Dockerfile syntax with 'docker build --no-cache .'. Verify base image exists with 'docker pull <image>'. Check for typos in COPY paths.",
-            "docker build --no-cache -t myapp .",
-            new[] { "docker", "build", "dockerfile", "image" },
-            "troubleshoot-article/docker-build-fail"),
-        
-        new TroubleshootCard("k8s-service-unreachable", "K8s", "Service Unreachable", "Medium",
-            "Can't reach a service inside the cluster from outside.",
-            "Check service type (LoadBalancer/NodePort/Ingress). Verify selector labels match pod labels. Test with 'kubectl port-forward svc/<name> 8080:80'.",
-            "kubectl get svc -o wide",
-            new[] { "kubernetes", "service", "network", "ingress" },
-            "troubleshoot-article/k8s-service-unreachable"),
-        
-        new TroubleshootCard("gha-secret-missing", "CI/CD", "Secret Not Found", "Low",
-            "Workflow references a secret that doesn't exist.",
-            "Go to Settings > Secrets and variables > Actions. Add the missing secret. For organization secrets, ensure the repository has access.",
-            "gh secret set MY_SECRET --body 'value'",
-            new[] { "github-actions", "secrets", "env", "variables" },
-            "troubleshoot-article/gha-secret-missing"),
     };
 
     private List<TroubleshootCard> DisplayCards => _filteredCards.Any() || !string.IsNullOrEmpty(_searchQuery) || _activeFilter != null

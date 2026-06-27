@@ -361,7 +361,10 @@
         return "";
     }
 
-    private void ClearTerm() { _termLines.Clear(); _typing = ""; }
+    private void ClearTerm() {
+        _termLines.Clear();
+        _typing = "";
+    }
 
     private async Task RunSim()
     {

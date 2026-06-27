@@ -962,15 +962,22 @@ body {
         -webkit-text-fill-color: transparent;
     }
 
+    .logo-text img {
+        height: 65px;
+        width: 65px;
+        margin-right: -6px;
+        margin-bottom: 3px;
+    }
+
 .header-controls {
-    max-width: 600px;
+    max-width: 800px;
     margin: 0 40px;
 }
 
 .search-input {
     background-color: #4b4474 !important;
-    border: 1px solid var(--border-color) !important;
-    border-radius: 10px !important;
+    border: 2px solid var(--border-color) !important;
+    border-radius: 100% !important;
     padding: 10px 16px 10px 40px !important;
     color: #fff !important;
     font-family: var(--font-sans);
@@ -2497,4 +2504,30 @@ main {
         width: 100%;
         justify-content: center;
     }
+}
+
+.troubleshoot-hero {
+    position: relative;
+    min-height: 420px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.troubleshoot-hero-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+    pointer-events: none;
+    user-select: none;
+}
+
+.troubleshoot-hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient( 180deg, rgba(9, 9, 11, 0.85) 0%, rgba(9, 9, 11, 0.7) 40%, rgba(9, 9, 11, 0.9) 100% );
+    z-index: 1;
 }
