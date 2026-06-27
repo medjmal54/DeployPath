@@ -1,76 +1,442 @@
 @page "/"
 @layout LandingLayout
 @inject NavigationManager navigationManager
+@inject IJSRuntime JSRuntime
 
-<PageTitle>DeployPath - Your code in Production</PageTitle>
+<PageTitle>DeployPath — From Code to Cloud</PageTitle>
 
-<section class="hero-section text-center mt-5">
-    <div class="container mt-4">
-        <h1 class="hero-title display-3 fw-bold mb-3">From code to Cloud</h1>
-        <p class="hero-description lead mx-auto mb-5" style="max-width: 650px; color: rgba(73, 159, 193, 0.8); font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;">
-            Master modern software deployment. Interactive guides about Git,
-                GitHub Actions, Docker and Kubernetes.
-            Move your code from your local machine to production in the cloud.
-        </p>
-    </div>
-</section>
+<div class="hp-root">
 
-<!-- Interactive Roadmap -->
-<section class="roadmap-container my-5">
-    <div class="container">
-        <div class="roadmap-flow d-flex justify-content-between align-items-center flex-wrap gap-3 position-relative py-4 mx-auto" style="max-width: 1000px;">
-            <div class="roadmap-node d-flex align-items-center gap-2" @onclick='() => NavigateTo("lesson/git/git-intro")'>
-                <span><img src="icons/Git.svg" alt="Git"/></span> Git
-            </div>
-            <span class="roadmap-arrow" style="color: steelblue;">→</span>
-            <div class="roadmap-node d-flex align-items-center gap-2" @onclick='() => NavigateTo("lesson/gha/gha-intro")'>
-                <span><img src="icons/githubactions-svgrepo-com.svg" alt="GitHub Actions" /></span> CI/CD
-            </div>
-            <span class="roadmap-arrow" style="color: royalblue;">→</span>
-            <div class="roadmap-node d-flex align-items-center gap-2" @onclick='() => NavigateTo("lesson/docker/docker-intro")'>
-                <span><img src="icons/Docker.svg" alt="Docker"/></span> Docker
-            </div>
-            <span class="roadmap-arrow" style="color: cornflowerblue;">→</span>
-            <div class="roadmap-node d-flex align-items-center gap-2" @onclick='() => NavigateTo("lesson/k8s/k8s-intro")'>
-                <span><img src="icons/k8s.svg" alt="Kubernetes" /></span> K8s
-            </div>
-            <span class="roadmap-arrow" style="color: mediumseagreen;">→</span>
-            <div class="roadmap-node active-node d-flex align-items-center gap-2">
-                <span>🚀</span> Deploy
-            </div>
+    <!-- ════════════════════════════════════════════
+         TICKER TAPE
+         ════════════════════════════════════════════ -->
+    <div class="hp-ticker">
+        <div class="hp-ticker-inner">
+            @for (int t = 0; t < 3; t++)
+            {
+                <span class="hp-ticker-item">GIT</span>
+                <span class="hp-ticker-sep">×</span>
+                <span class="hp-ticker-item">CI/CD</span>
+                <span class="hp-ticker-sep">×</span>
+                <span class="hp-ticker-item">DOCKER</span>
+                <span class="hp-ticker-sep">×</span>
+                <span class="hp-ticker-item">KUBERNETES</span>
+                <span class="hp-ticker-sep">×</span>
+                <span class="hp-ticker-item">PRODUCTION</span>
+                <span class="hp-ticker-sep">×</span>
+                <span class="hp-ticker-item">DEVOPS</span>
+                <span class="hp-ticker-sep">×</span>
+            }
         </div>
     </div>
-</section>
 
-<!-- Multi-Language Support -->
-<section class="multi-language-support border rounded-3 p-4 p-lg-5 mb-5 mx-auto" style="max-width: 900px;">
-    <div class="section-headline d-flex flex-column gap-2 mb-4">
-        <h2 class="h4 fw-bold mb-0" style="font-family: var(--font-display);">Language Agnostic Workflows</h2>
-        <p class="text-white-50 small mb-0" style="max-width: 720px; line-height: 1.7;">
-            Deployment patterns that work regardless of your stack. Whether you ship Python, Node.js, Go, or .NET — the pipeline stays the same.
-        </p>
-    </div>
-    <div class="row row-cols-2 row-cols-md-4 row-cols-lg-6 g-3 mb-4">
-        @foreach (var lang in Languages)
-        {
-            <div class="col">
-                <div class="language-pill d-inline-flex align-items-center justify-content-center w-100 py-3 px-3 rounded-pill border">
-                    @lang
+    <!-- ════════════════════════════════════════════
+         HERO — EDITORIAL SPLIT LAYOUT
+         ════════════════════════════════════════════ -->
+    <section class="hp-hero">
+        <!-- Noise & grid overlay -->
+        <div class="hp-hero-grid-overlay"></div>
+
+        <div class="hp-hero-inner container">
+            <!-- Left column: big typographic headline -->
+            <div class="hp-hero-left">
+
+                <h1 class="hp-hero-headline">
+                    <span class="hp-headline-thin">FROM</span>
+                    <span class="hp-headline-block">CODE</span>
+                    <span class="hp-headline-stroke">TO&nbsp;CLOUD.</span>
+                </h1>
+
+                <p class="hp-hero-desc">
+                    One complete curriculum. Commit to cluster.<br />
+                    Ship with confidence — every single time.
+                </p>
+
+                <div class="hp-hero-ctas">
+                    <button class="hp-cta-primary" @onclick='() => navigationManager.NavigateTo("learning")'>
+                        <span>Start Learning</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </button>
+                    <button class="hp-cta-ghost" @onclick='() => ScrollTo("path")'>
+                        View Roadmap
+                    </button>
+                </div>
+
+                <!-- Stat row -->
+                <div class="hp-stats-row">
+                    @foreach (var s in _stats)
+                    {
+                        <div class="hp-stat">
+                            <span class="hp-stat-number">@s.Value</span>
+                            <span class="hp-stat-label">@s.Label</span>
+                        </div>
+                        @if (s != _stats[^1])
+                        {
+                            <div class="hp-stat-divider"></div>
+                        }
+                    }
                 </div>
             </div>
-        }
-    </div>
-    <div class="workflow-info-card rounded-3 p-4">
-        <h3 class="h5 fw-bold mb-2">One Pipeline, Any Runtime</h3>
-        <p class="text-white-50 mb-0">Build → Test → Containerize → Deploy. The workflow adapts to your language, not the other way around.</p>
-    </div>
-</section>
 
-@code{
-    private List<string> Languages = new()
+            <!-- Right column: terminal card + floating chips -->
+            <div class="hp-hero-right">
+                <div class="hp-term-card">
+                    <div class="hp-term-bar">
+                        <div class="hp-term-dots">
+                            <span style="background:#FF5F56"></span>
+                            <span style="background:#FFBD2E"></span>
+                            <span style="background:#27C93F"></span>
+                        </div>
+                        <span class="hp-term-label">bash — deploypath</span>
+                    </div>
+                    <div class="hp-term-body" @ref="terminalRef">
+                        @if (_termLines.Count == 0 && string.IsNullOrEmpty(_typing))
+                        {
+                            <div class="hp-term-idle">
+                                <span class="hp-term-prompt">$</span>
+                                <span class="hp-cursor">▋</span>
+                            </div>
+                        }
+                        else
+                        {
+                            @foreach (var line in _termLines)
+                            {
+                                <div class="hp-term-line @GetCls(line)">
+                                    @if (line.StartsWith("$") || line.StartsWith("▶"))
+                                    {
+                                        <span class="hp-term-prompt">@line[0]</span><span> @line[1..]</span>
+                                    }
+                                    else
+                                    {
+                                        @line
+                                    }
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(_typing))
+                            {
+                                <div class="hp-term-line hp-term-cmd">
+                                    <span class="hp-term-prompt">@_typing[0]</span><span> @_typing[1..]</span><span class="hp-cursor">▋</span>
+                                </div>
+                            }
+                        }
+                    </div>
+                    <div class="hp-term-footer">
+                        <button class="hp-run-btn" @onclick="RunSim" disabled="@_running">
+                            @(_running ? "Running…" : "▶ Run Pipeline")
+                        </button>
+                        @if (_termLines.Count > 0 && !_running)
+                        {
+                            <button class="hp-clear-btn" @onclick="ClearTerm">Clear</button>
+                        }
+                    </div>
+                </div>
+
+                <!-- Floating tech chips -->
+                <div class="hp-float-chip hp-chip-a"><img src="icons/k8s.svg" /> K8s</div>
+                <div class="hp-float-chip hp-chip-b"><img src="icons/Docker.svg" /> Docker</div>
+                <div class="hp-float-chip hp-chip-c"><img src="icons/githubactions-svgrepo-com.svg" /> CI/CD</div>
+                <div class="hp-float-chip hp-chip-d">🔧 Fix It</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════
+         DIAGONAL SEPARATOR
+         ════════════════════════════════════════════ -->
+    <div class="hp-diagonal-sep"></div>
+
+    <!-- ════════════════════════════════════════════
+         PATH SECTION — VERTICAL TIMELINE
+         ════════════════════════════════════════════ -->
+    <section class="hp-path" id="path">
+        <div class="container">
+            <div class="hp-path-header">
+                <div class="hp-section-number">01</div>
+                <div>
+                    <div class="hp-section-eyebrow">The Curriculum</div>
+                    <h2 class="hp-section-title">Your Deploy<span class="hp-accent-word">Path</span></h2>
+                </div>
+            </div>
+
+            <div class="hp-timeline">
+                @foreach (var (item, idx) in _path.Select((x, i) => (x, i)))
+                {
+                    <div class="hp-timeline-item @(idx % 2 == 0 ? "hp-left" : "hp-right")"
+                         @onclick="() => NavigateItem(item)">
+                        <div class="hp-timeline-node">
+                            <div class="hp-timeline-icon"><img src="icons/@item.Icon" /></div>
+                            <div class="hp-timeline-step">0@(idx + 1)</div>
+                        </div>
+                        <div class="hp-timeline-content">
+                            <div class="hp-timeline-meta">
+                                <span class="hp-timeline-tag">@item.Time</span>
+                                <span class="hp-timeline-tag">@item.Lessons</span>
+                            </div>
+                            <h3 class="hp-timeline-name">@item.Name</h3>
+                            <p class="hp-timeline-desc">@item.Description</p>
+                            <div class="hp-timeline-topics">
+                                @foreach (var topic in item.Topics)
+                                {
+                                    <span class="hp-topic-chip">@topic</span>
+                                }
+                            </div>
+                            @if (!string.IsNullOrEmpty(item.Module))
+                            {
+                                <div class="hp-timeline-arrow">Start module →</div>
+                            }
+                        </div>
+                    </div>
+                }
+                <!-- End node -->
+                <div class="hp-timeline-end">
+                    <div class="hp-timeline-end-node">🚀</div>
+                    <span class="hp-timeline-end-label">PRODUCTION</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════
+         LANGUAGES — MARQUEE GRID
+         ════════════════════════════════════════════ -->
+    <section class="hp-langs-section">
+        <div class="container">
+            <div class="hp-path-header">
+                <div class="hp-section-number">02</div>
+                <div>
+                    <div class="hp-section-eyebrow">Universal</div>
+                    <h2 class="hp-section-title">Any Stack. <span class="hp-accent-word">One Path.</span></h2>
+                </div>
+            </div>
+
+            <div class="hp-lang-marquee-wrap">
+                <div class="hp-lang-marquee">
+                    @for (int r = 0; r < 2; r++)
+                    {
+                        @foreach (var lang in _langs)
+                        {
+                            <div class="hp-lang-pill" style="--lc: @lang.Color">
+                                <span class="hp-lang-pill-icon"><img src="icons/@lang.Icon" alt="@lang.Name" /></span>
+                                <span class="hp-lang-pill-name">@lang.Name</span>
+                                <span class="hp-lang-pill-dot"></span>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TROUBLESHOOT CALLOUT -->
+    <section class="hp-ts-callout">
+        <div class="container">
+            <div class="hp-ts-inner">
+                <div class="hp-ts-left">
+                    <div class="hp-ts-badge">🔧 Troubleshoot Hub</div>
+                    <h2 class="hp-ts-title">Stuck?<br /><span class="hp-ts-accent">We've got fixes.</span></h2>
+                    <p class="hp-ts-desc">
+                        Real errors. Real solutions. Git rejections, pod crashes, auth fails — 
+                        search and fix in seconds.
+                    </p>
+                    <button class="hp-cta-primary" @onclick='() => navigationManager.NavigateTo("troubleshoot")'>
+                        <span>Open Troubleshoot Hub</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </button>
+                </div>
+                <div class="hp-ts-right">
+                    <!-- Error cards preview -->
+                    @foreach (var err in _errors)
+                    {
+                        <div class="hp-err-card" style="--ec: @err.Color">
+                            <div class="hp-err-top">
+                                <span class="hp-err-cat" style="color:@err.Color">@err.Category</span>
+                                <span class="hp-err-sev">@err.Severity</span>
+                            </div>
+                            <div class="hp-err-title">@err.Title</div>
+                            <div class="hp-err-cmd">
+                                <span class="hp-err-cmd-icon">$</span>
+                                <code>@err.Cmd</code>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FINAL CTA -->
+    <section class="hp-final-cta">
+        <div class="hp-final-bg-text">DEPLOY</div>
+        <div class="container text-center" style="position:relative;z-index:2">
+            <div class="hp-section-number" style="margin:0 auto 1rem">03</div>
+            <h2 class="hp-final-title">
+                Ready to ship<br />
+                <span class="hp-final-accent">your first app?</span>
+            </h2>
+            <p class="hp-final-sub">Start with Git. End in Production.</p>
+            <button class="hp-cta-primary hp-cta-xl"
+                    @onclick='() => navigationManager.NavigateTo("lesson/git/git-intro")'>
+                <span>Begin Your Journey</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+        </div>
+    </section>
+
+</div>
+
+@code {
+    private ElementReference terminalRef;
+    private bool _running;
+    private List<string> _termLines = new();
+    private string _typing = "";
+
+    private record Stat(string Value, string Label);
+    private record PathItem(string Name, string Icon, string Module, string Slug,
+        string Description, string Lessons, string Time, string[] Topics);
+    private record LangItem(string Name, string Icon, string Color);
+    private record ErrorPreview(string Category, string Title, string Severity, string Cmd, string Color);
+
+    private List<Stat> _stats = new()
     {
-        "Python", "Node.js", "Go", "Java", ".NET", "PHP"
+        new("5", "Modules"),
+        new("13", "Lessons"),
+        new("10+", "DevOps Fixes"),
+        new("0→∞", "Scale"),
     };
-    private void NavigateTo(string path) => navigationManager.NavigateTo(path);
-}
 
+    private List<PathItem> _path = new()
+    {
+        new("Git", "Git.svg", "git", "git-intro", "Master version control fundamentals", "3 lessons", "20 min",
+            new[] { "Commits", "Branches", "Merge" }),
+        new("CI/CD", "githubactions-svgrepo-com.svg", "gha", "gha-intro", "Build automated pipelines that ship code for you", "3 lessons", "25 min",
+            new[] { "Workflows", "Actions", "Runners" }),
+        new("Docker", "Docker.svg", "docker", "docker-intro", "Containerize any application, any runtime", "3 lessons", "30 min",
+            new[] { "Images", "Containers", "Compose" }),
+        new("Kubernetes", "k8s.svg", "k8s", "k8s-intro", "Orchestrate containers at production scale", "3 lessons", "35 min",
+            new[] { "Pods", "Services", "Deployments" }),
+        new("Deploy", "deploy.svg", "", "", "Ship to production with confidence", "1 lesson", "15 min",
+            new[] { "Clusters", "Ingress", "Monitoring" }),
+    };
+
+    private List<LangItem> _langs = new()
+    {
+        new("Python", "Python.svg", "#3B82F6"),
+        new("Node.js", "nodejs.svg", "#22C55E"),
+        new("Go", "go.svg", "#06B6D4"),
+        new("Java", "java.svg", "#F97316"),
+        new(".NET", "dotnet.svg", "#8B5CF6"),
+        new("PHP", "php.svg", "#6366F1"),
+        new("Ruby", "ruby.svg", "#EF4444"),
+    };
+
+    private List<ErrorPreview> _errors = new()
+    {
+        new("Git", "Push Rejected", "HIGH", "git pull origin main --rebase", "#F05032"),
+        new("K8s", "CrashLoopBackOff", "HIGH", "kubectl describe pod <pod> -n ns", "#326CE5"),
+        new("Docker", "Container Crash", "MEDIUM", "docker logs --tail 50 <id>", "#0DB7ED"),
+    };
+
+    private void NavigateItem(PathItem item)
+    {
+        if (!string.IsNullOrEmpty(item.Module))
+            navigationManager.NavigateTo($"lesson/{item.Module}/{item.Slug}");
+    }
+
+    private async Task ScrollTo(string id)
+    {
+        await JSRuntime.InvokeVoidAsync("eval",
+            $"document.getElementById('{id}')?.scrollIntoView({{behavior:'smooth'}})");
+    }
+
+    private string GetCls(string line)
+    {
+        if (line.StartsWith("✔") || line.Contains("successfully") || line.Contains("completed"))
+            return "hp-line-ok";
+        if (line.StartsWith("$") || line.StartsWith("▶"))
+            return "hp-term-cmd";
+        if (line.StartsWith("🚀"))
+            return "hp-line-rocket";
+        if (line.StartsWith("┌") || line.StartsWith("│") || line.StartsWith("└"))
+            return "hp-line-box";
+        return "";
+    }
+
+    private void ClearTerm() { _termLines.Clear(); _typing = ""; }
+
+    private async Task RunSim()
+    {
+        if (_running) return;
+        _running = true;
+        _termLines.Clear();
+        _typing = "";
+        StateHasChanged();
+
+        await Type("$ git push origin main");
+        await Pause(350);
+        Add("Enumerating objects: 15, done.");
+        await Pause(250);
+        Add("Writing objects: 100% (15/15), 3.2 KiB | 1.6 MiB/s");
+        await Pause(350);
+        Add("✔ Repository updated");
+        await Pause(500);
+
+        Add("");
+        await Type("▶ Trigger: build-and-deploy");
+        await Pause(400);
+        Add("  ✔ Checkout completed");
+        await Pause(300);
+        Add("  ✔ Setup Node.js completed");
+        await Pause(300);
+        Add("  ✔ Tests passed (42/42)");
+        await Pause(400);
+        Add("  ✔ Build artifact ready");
+        await Pause(500);
+
+        Add("");
+        await Type("$ docker build -t deploypath/app:latest .");
+        await Pause(500);
+        Add("Step 1/8 : FROM node:18-alpine");
+        await Pause(150);
+        Add("Step 8/8 : CMD [\"node\", \"server.js\"]");
+        await Pause(350);
+        Add("✔ Successfully built deploypath/app:latest");
+        await Pause(500);
+
+        Add("");
+        await Type("$ kubectl apply -f k8s/");
+        await Pause(400);
+        Add("deployment.apps/app configured");
+        await Pause(300);
+        Add("service/app exposed");
+        await Pause(300);
+        Add("✔ Rollout completed — 3 replicas ready");
+        await Pause(700);
+
+        Add("");
+        Add("🚀 Application live at https://myapp.deplopath.dev");
+        Add("");
+        Add("┌──────────────────────────────────────┐");
+        Add("│  Pipeline complete. Ship it. 🎉       │");
+        Add("└──────────────────────────────────────┘");
+
+        _running = false;
+        StateHasChanged();
+    }
+
+    private async Task Type(string text)
+    {
+        _typing = text.Length > 0 ? text[..1] : "";
+        foreach (var c in text[1..])
+        {
+            _typing += c;
+            await Task.Delay(20);
+            StateHasChanged();
+        }
+        _termLines.Add(_typing);
+        _typing = "";
+        StateHasChanged();
+    }
+
+    private void Add(string l) { _termLines.Add(l); StateHasChanged(); }
+    private async Task Pause(int ms) => await Task.Delay(ms);
+}
